@@ -1,0 +1,1 @@
+window.VP_CONFIG={festival:{nome:"Festival de Talentos Online",organizacao:"Vale Produções",ano:new Date().getFullYear()},weights:{voz:.40,afinacao:.35,interpretacao:.25},judges:[{user:"jurado1",pass:"vale2026"},{user:"jurado2",pass:"vale2026"}],candidateCode:{prefix:"VP",startAt:2000}};

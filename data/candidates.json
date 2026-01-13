@@ -1,0 +1,90 @@
+[
+  {
+    "id": "VP-1001",
+    "nome": "Ana Lira",
+    "nomeArtistico": "Ana Lira",
+    "cidade": "São Paulo - SP",
+    "genero": "Gospel",
+    "foto": "assets/img/demo/ana.jpg",
+    "audio": "assets/audio/demo-1.wav",
+    "inscritoEm": "2026-01-10",
+    "bio": "Voz suave, interpretação emocional, presença forte em louvor."
+  },
+  {
+    "id": "VP-1002",
+    "nome": "Carlos Nunes",
+    "nomeArtistico": "CNunes",
+    "cidade": "Recife - PE",
+    "genero": "Sertanejo",
+    "foto": "assets/img/demo/carlos.jpg",
+    "audio": "assets/audio/demo-2.wav",
+    "inscritoEm": "2026-01-09",
+    "bio": "Timbre marcante e refrões com grande potencial popular."
+  },
+  {
+    "id": "VP-1003",
+    "nome": "Joyce Araújo",
+    "nomeArtistico": "Joyce Araújo",
+    "cidade": "Salvador - BA",
+    "genero": "Pop",
+    "foto": "assets/img/demo/joyce.jpg",
+    "audio": "assets/audio/demo-3.wav",
+    "inscritoEm": "2026-01-08",
+    "bio": "Vocal potente, versatilidade e energia para palco."
+  },
+  {
+    "id": "VP-1004",
+    "nome": "Mateus Silva",
+    "nomeArtistico": "Mateus Silva",
+    "cidade": "Belo Horizonte - MG",
+    "genero": "Pagode",
+    "foto": "assets/img/demo/mateus.jpg",
+    "audio": "assets/audio/demo-4.wav",
+    "inscritoEm": "2026-01-08",
+    "bio": "Afinação sólida e swing natural; ótimo carisma."
+  },
+  {
+    "id": "VP-1005",
+    "nome": "Rafaela Costa",
+    "nomeArtistico": "Rafa Costa",
+    "cidade": "Rio de Janeiro - RJ",
+    "genero": "MPB",
+    "foto": "assets/img/demo/rafa.jpg",
+    "audio": "assets/audio/demo-5.wav",
+    "inscritoEm": "2026-01-07",
+    "bio": "Interpretação refinada e repertório autoral promissor."
+  },
+  {
+    "id": "VP-1006",
+    "nome": "Bruno Reis",
+    "nomeArtistico": "Bruno Reis",
+    "cidade": "Fortaleza - CE",
+    "genero": "Trap/Rap",
+    "foto": "assets/img/demo/bruno.jpg",
+    "audio": "assets/audio/demo-6.wav",
+    "inscritoEm": "2026-01-07",
+    "bio": "Flow moderno, escrita criativa e identidade própria."
+  },
+  {
+    "id": "VP-1007",
+    "nome": "Letícia Moura",
+    "nomeArtistico": "Let Moura",
+    "cidade": "Curitiba - PR",
+    "genero": "Gospel",
+    "foto": "assets/img/demo/leticia.jpg",
+    "audio": "assets/audio/demo-7.wav",
+    "inscritoEm": "2026-01-06",
+    "bio": "Vibrato bonito, excelente controle e emoção."
+  },
+  {
+    "id": "VP-1008",
+    "nome": "Diego Paiva",
+    "nomeArtistico": "Diego Paiva",
+    "cidade": "Manaus - AM",
+    "genero": "Forró",
+    "foto": "assets/img/demo/diego.jpg",
+    "audio": "assets/audio/demo-8.wav",
+    "inscritoEm": "2026-01-06",
+    "bio": "Voz quente, levada nordestina e refrões grudentos."
+  }
+]
