@@ -1,13 +1,214 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Festival • Vale Produções</title><link rel="stylesheet" href="./assets/css/styles.css"/></head><body><div class="bgfx" aria-hidden="true"></div><div id="headerMount"></div><main>
-<section class="hero"><div class="container hero__grid">
-<div><div class="badge"><span class="dot"></span>Inscrição gratuita • 100% online • Ranking ao vivo</div>
-<h1 class="hero__title">Festival de Talentos <span class="hero__titleAccent">Vale Produções</span></h1>
-<p class="hero__lead">Envie seu áudio, apareça no ranking e seja avaliado por profissionais da música.</p>
-<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px"><a class="btn btn--gold" href="./pages/inscricao.html">Fazer inscrição</a><a class="btn btn--ghost" href="./pages/ranking.html">Ver ranking</a></div>
-</div>
-<div class="card" style="padding:18px"><div style="font-weight:900;font-size:18px">Grande prêmio</div><div style="color:var(--muted);margin-top:6px;line-height:1.6">Gravação profissional + Gestão de carreira + Acesso VIP aos apps.</div><div style="margin-top:14px"><a class="btn btn--gold btn--block" href="./pages/inscricao.html">Enviar áudio agora</a></div></div>
-</div></section>
-<section id="sobre" class="section"><div class="container"><div class="section__head"><h2>Quem somos</h2><p>A Vale Produções é focada em revelar talentos com padrão profissional. Este festival é nosso formato de seleção transparente.</p></div>
-<div class="grid3"><div class="tile"><b>Seleção justa</b><div style="color:var(--muted);margin-top:6px">Critérios claros e ranking público.</div></div><div class="tile"><b>Avaliação profissional</b><div style="color:var(--muted);margin-top:6px">Banca com experiência real.</div></div><div class="tile"><b>Estrutura premium</b><div style="color:var(--muted);margin-top:6px">Pronto para evoluir para inscrição paga.</div></div></div>
-</div></section>
-</main><div id="footerMount"></div><script src="./assets/js/config.js"></script><script src="./assets/js/ui.js"></script><script src="./assets/js/storage.js"></script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b0b10" />
+  <title>Vale Music Awards • Festival Internacional de Talentos</title>
+  <meta name="description" content="Vale Music Awards: festival internacional de talentos (vocal agora, instrumental em breve). Envie seu áudio, apareça no ranking e seja avaliado por profissionais da música." />
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+<body>
+  <div class="bgfx" aria-hidden="true"></div>
+  <div id="headerMount"></div>
+
+  <main>
+    <section class="hero">
+      <div class="container hero__grid">
+        <div class="hero__content">
+          <div class="badge">
+            <span class="dot"></span>
+            Inscrição gratuita • 100% online • Ranking ao vivo
+          </div>
+
+          <h1 class="hero__title">
+            Vale Music Awards
+            <span class="hero__titleAccent">Festival Internacional de Talentos</span>
+          </h1>
+
+          <p class="hero__lead">
+            O palco do futuro começa aqui. Envie sua <b>voz</b> (áudio) e sua <b>foto</b>.
+            Nossa banca avalia com critérios profissionais e o ranking mostra os melhores.
+          </p>
+
+          <div class="hero__actions">
+            <a class="btn btn--gold" href="./pages/inscricao.html">Fazer inscrição</a>
+            <a class="btn btn--ghost" href="./pages/ranking.html">Ver ranking</a>
+          </div>
+
+          <div class="hero__stats">
+            <div class="stat">
+              <div class="stat__num" id="statCandidates">—</div>
+              <div class="stat__label">Candidatos (demo)</div>
+            </div>
+            <div class="stat">
+              <div class="stat__num">3</div>
+              <div class="stat__label">Critérios por nota</div>
+            </div>
+            <div class="stat">
+              <div class="stat__num">Vocal</div>
+              <div class="stat__label">Instrumental em breve</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero__card">
+          <div class="card card--glow">
+            <div class="card__top">
+              <div class="card__kicker">Grande prêmio</div>
+              <div class="card__title">Gravação profissional + Gestão de carreira</div>
+              <div class="card__sub">Acesso VIP aos apps da Vale Produções • Sem custo para o vencedor</div>
+            </div>
+
+            <div class="prize">
+              <div class="prize__item">
+                <div class="prize__icon">🎙️</div>
+                <div>
+                  <div class="prize__name">Gravação gratuita</div>
+                  <div class="prize__desc">Produção com qualidade premium</div>
+                </div>
+              </div>
+              <div class="prize__item">
+                <div class="prize__icon">📈</div>
+                <div>
+                  <div class="prize__name">Gestão de carreira</div>
+                  <div class="prize__desc">Plano de posicionamento e crescimento</div>
+                </div>
+              </div>
+              <div class="prize__item">
+                <div class="prize__icon">⭐</div>
+                <div>
+                  <div class="prize__name">Acesso aos apps</div>
+                  <div class="prize__desc">Ferramentas e relatórios exclusivos</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card__bottom">
+              <a class="btn btn--gold btn--block" href="./pages/inscricao.html">Enviar áudio agora</a>
+              <p class="card__hint">Dica: use fones e grave em local silencioso.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero__shine" aria-hidden="true"></div>
+    </section>
+
+    <section id="sobre" class="section">
+      <div class="container">
+        <div class="section__head">
+          <h2>Quem somos</h2>
+          <p>
+            A <b>Vale Produções</b> cria e desenvolve artistas com padrão profissional.
+            O <b>Vale Music Awards</b> é o nosso formato de seleção: transparente, acessível e com evolução visível no ranking.
+            Hoje o foco é <b>vocal</b>. Em breve, abriremos também para <b>instrumental</b>.
+          </p>
+        </div>
+
+        <div class="grid3">
+          <div class="tile">
+            <div class="tile__icon">🏆</div>
+            <div class="tile__title">Seleção justa</div>
+            <div class="tile__text">Critérios claros, notas registradas e ranking público.</div>
+          </div>
+          <div class="tile">
+            <div class="tile__icon">🎧</div>
+            <div class="tile__title">Avaliação profissional</div>
+            <div class="tile__text">Banca com experiência em voz, interpretação e mercado.</div>
+          </div>
+          <div class="tile">
+            <div class="tile__icon">✨</div>
+            <div class="tile__title">Estrutura premium</div>
+            <div class="tile__text">Experiência luxuosa, pronta para evoluir para inscrição paga.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="regras" class="section section--alt">
+      <div class="container">
+        <div class="section__head">
+          <h2>Regras rápidas</h2>
+          <p>Para manter a qualidade e a igualdade, seguimos um padrão simples.</p>
+        </div>
+
+        <div class="rules">
+          <div class="rule">
+            <div class="rule__num">01</div>
+            <div class="rule__body">
+              <div class="rule__title">Inscrição gratuita</div>
+              <div class="rule__text">Preencha a ficha e envie seu áudio + foto.</div>
+            </div>
+          </div>
+          <div class="rule">
+            <div class="rule__num">02</div>
+            <div class="rule__body">
+              <div class="rule__title">Uma participação por pessoa</div>
+              <div class="rule__text">Evita duplicidade e garante justiça no ranking.</div>
+            </div>
+          </div>
+          <div class="rule">
+            <div class="rule__num">03</div>
+            <div class="rule__body">
+              <div class="rule__title">Avaliação por critérios</div>
+              <div class="rule__text">Voz, afinação e interpretação (nota de 0 a 10).</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">
+          <div class="note__icon">ℹ️</div>
+          <div class="note__text">
+            <b>Importante:</b> este site funciona 100% no GitHub Pages (front-end).  
+            Para ranking global real e envio de arquivos em servidor, adicionaremos backend na próxima fase.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="section">
+      <div class="container">
+        <div class="section__head">
+          <h2>Dúvidas frequentes</h2>
+          <p>Respostas objetivas para acelerar sua inscrição.</p>
+        </div>
+
+        <div class="accordion" id="faqAcc">
+          <button class="acc__item" aria-expanded="false">
+            <span>Como envio meu áudio?</span>
+            <span class="acc__chev">+</span>
+          </button>
+          <div class="acc__panel">
+            Você anexa um arquivo de áudio na inscrição. Em GitHub Pages, o envio é “demo” (salvo no navegador).
+            Na fase com backend, o envio será 100% online e global.
+          </div>
+
+          <button class="acc__item" aria-expanded="false">
+            <span>Como o ranking funciona?</span>
+            <span class="acc__chev">+</span>
+          </button>
+          <div class="acc__panel">
+            Jurados registram notas por critério. O ranking calcula média ponderada e exibe os melhores.
+          </div>
+
+          <button class="acc__item" aria-expanded="false">
+            <span>O que o vencedor ganha?</span>
+            <span class="acc__chev">+</span>
+          </button>
+          <div class="acc__panel">
+            Gravação gratuita, gestão de carreira e acesso VIP aos apps da Vale Produções, sem custo.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="footerMount"></div>
+
+  <script src="./assets/js/config.js"></script>
+  <script src="./assets/js/ui.js"></script>
+  <script src="./assets/js/storage.js"></script>
+  <script src="./assets/js/app.js"></script>
+</body>
+</html>
