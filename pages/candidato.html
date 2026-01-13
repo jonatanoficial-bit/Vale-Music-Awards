@@ -1,4 +1,49 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Candidato</title><link rel="stylesheet" href="../assets/css/styles.css"/></head><body><div class="bgfx" aria-hidden="true"></div><div id="headerMount"></div><main class="page"><section class="section"><div class="container"><div class="section__head"><h1 class="h1">Área do Candidato</h1><p>Digite seu código para ver sua ficha.</p></div>
-<div class="card" style="padding:18px;max-width:860px;margin-top:16px"><form id="cf" style="display:flex;gap:10px;flex-wrap:wrap"><input name="code" placeholder="VP-1001" required style="flex:1;min-width:220px;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.30);color:var(--text)"/><button class="btn btn--gold" type="submit">Ver</button></form><div id="out" style="margin-top:14px"></div></div>
-</div></section></main><div id="footerMount"></div>
-<script src="../assets/js/config.js"></script><script src="../assets/js/ui.js"></script><script src="../assets/js/storage.js"></script><script src="../assets/js/candidato.js"></script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Área do Candidato • Vale Music Awards</title>
+  <meta name="description" content="Área do candidato do Vale Music Awards. Consulte sua posição no ranking e o feedback dos jurados." />
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+</head>
+<body>
+  <div class="bgfx" aria-hidden="true"></div>
+  <div id="headerMount"></div>
+
+  <main class="page">
+    <section class="section">
+      <div class="container">
+        <div class="section__head">
+          <h1 class="h1">Área do Candidato</h1>
+          <p>
+            Digite seu código de inscrição para acompanhar sua avaliação no
+            <b>Vale Music Awards</b>.
+          </p>
+        </div>
+
+        <div class="card" style="padding:18px;max-width:860px;margin-top:16px">
+          <form id="cf" style="display:flex;gap:10px;flex-wrap:wrap">
+            <input
+              name="code"
+              placeholder="VMA-2001"
+              required
+              style="flex:1;min-width:220px;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.30);color:var(--text)"
+            />
+            <button class="btn btn--gold" type="submit">Consultar</button>
+          </form>
+
+          <div id="out" style="margin-top:14px"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="footerMount"></div>
+
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/candidato.js"></script>
+</body>
+</html>
