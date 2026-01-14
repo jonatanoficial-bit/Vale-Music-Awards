@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Jurados • Vale Music Awards</title>
-  <meta name="description" content="Área restrita de jurados do Vale Music Awards. Avaliação profissional por critérios." />
+  <meta name="description" content="Área restrita de jurados do Vale Music Awards. Avaliação técnica com critérios e nota automática." />
   <link rel="stylesheet" href="../assets/css/styles.css"/>
 </head>
 <body>
@@ -17,21 +17,22 @@
         <div class="section__head">
           <h1 class="h1">Área de Jurados</h1>
           <p>
-            Painel exclusivo para avaliação dos candidatos do
-            <b>Vale Music Awards</b>.
+            Acesso restrito. Aqui você avalia os candidatos do <b>Vale Music Awards</b>.
+            A nota final (0–100) é calculada automaticamente e <b>fica travada</b> após finalizar.
           </p>
         </div>
 
-        <div class="card" style="padding:18px;max-width:860px;margin-top:16px" id="judgeBox"></div>
+        <div class="card" style="padding:18px;max-width:920px;margin-top:16px" id="judgeBox"></div>
       </div>
     </section>
   </main>
 
   <div id="footerMount"></div>
 
-  <script src="../assets/js/config.js"></script>
   <script src="../assets/js/ui.js"></script>
-  <script src="../assets/js/storage.js"></script>
-  <script src="../assets/js/jurados.js"></script>
+
+  <script src="../assets/js/vma-config.js"></script>
+  <script type="module" src="../assets/js/firebase.js"></script>
+  <script type="module" src="../assets/js/jurados.js"></script>
 </body>
 </html>
