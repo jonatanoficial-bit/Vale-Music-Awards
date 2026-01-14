@@ -15,11 +15,11 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
 /**
- * Inscrição:
- * - Reserva vaga com contador no Firestore (meta/stats)
- * - Cria ID VMA-0001 etc
- * - Faz upload (foto+mp3) no Firebase Storage
- * - Salva candidato em "candidates"
+ * Inscrição (modo confiável):
+ * - Gera ID VMA-0001... via meta/stats
+ * - Upload foto+mp3 no Firebase Storage
+ * - Salva dados no Firestore /candidates/{id}
+ * - SEMPRE dá feedback (botão e alerts)
  */
 
 function mbToBytes(mb) {
@@ -66,12 +66,15 @@ async function nextCandidateId() {
     const configSnap = await tx.get(configRef);
     const statsSnap = await tx.get(statsRef);
 
-    const max =
-      (configSnap.exists() ? Number(configSnap.data().maxCandidates) : Number(window.VMA?.LIMITS?.MAX_CANDIDATES)) ||
-      100;
+    if (!configSnap.exists()) {
+      throw new Error("Firestore: faltou criar meta/config (maxCandidates).");
+    }
+    if (!statsSnap.exists()) {
+      throw new Error("Firestore: faltou criar meta/stats (registrationsCount).");
+    }
 
-    const count =
-      (statsSnap.exists() ? Number(statsSnap.data().registrationsCount) : 0) || 0;
+    const max = Number(configSnap.data().maxCandidates || 100);
+    const count = Number(statsSnap.data().registrationsCount || 0);
 
     if (count >= max) throw new Error("INSCRICOES_ENCERRADAS");
 
@@ -85,8 +88,6 @@ async function nextCandidateId() {
 }
 
 async function uploadToStorage(candidateId, kind, file) {
-  // submissions/VMA-0001/photo.jpg
-  // submissions/VMA-0001/audio.mp3
   const ext = kind === "audio" ? "mp3" : getExt(file.name, "jpg");
   const path = `submissions/${candidateId}/${kind}.${ext}`;
 
@@ -100,8 +101,14 @@ async function uploadToStorage(candidateId, kind, file) {
 
   await uploadBytes(r, file, metadata);
   const url = await getDownloadURL(r);
-
   return { path, url };
+}
+
+function setBusy(btn, busy, text) {
+  if (!btn) return;
+  btn.disabled = !!busy;
+  btn.style.opacity = busy ? "0.7" : "1";
+  btn.textContent = text || (busy ? "Enviando..." : "Concluir inscrição");
 }
 
 (function () {
@@ -110,15 +117,22 @@ async function uploadToStorage(candidateId, kind, file) {
 
   const photoInput = document.getElementById("photoInput");
   const audioInput = document.getElementById("audioInput");
+  const submitBtn = form.querySelector('button[type="submit"]');
+
+  // Marca clara de que o script carregou
+  console.log("[VMA] inscricao.js carregado ✔");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    setBusy(submitBtn, true, "Enviando...");
+
     try {
-      // Garantia: config carregado
-      if (!window.VMA || window.VMA.UPLOAD_PROVIDER !== "firebase") {
-        alert("Configuração inválida: UPLOAD_PROVIDER não está como 'firebase'. Verifique o vma-config.js.");
-        return;
+      if (!window.VMA) {
+        throw new Error("Config não carregou: verifique assets/js/vma-config.js no HTML.");
+      }
+      if (window.VMA.UPLOAD_PROVIDER !== "firebase") {
+        throw new Error("UPLOAD_PROVIDER não está 'firebase'. Ajuste vma-config.js.");
       }
 
       const fd = new FormData(form);
@@ -135,48 +149,43 @@ async function uploadToStorage(candidateId, kind, file) {
       const audio = audioInput?.files?.[0] || null;
 
       if (!nome || !nomeArtistico || !whats || !email || !cidade || !genero) {
-        alert("Preencha todos os campos obrigatórios.");
-        return;
+        throw new Error("Preencha todos os campos obrigatórios.");
       }
       if (!photo || !audio) {
-        alert("Envie uma FOTO e um ÁUDIO.");
-        return;
+        throw new Error("Envie uma FOTO e um ÁUDIO.");
       }
 
-      // Limites
       const maxPhotoBytes = mbToBytes(Number(window.VMA.LIMITS.MAX_PHOTO_MB));
       if (photo.size > maxPhotoBytes) {
-        alert(`Foto muito grande. Máximo: ${window.VMA.LIMITS.MAX_PHOTO_MB}MB`);
-        return;
+        throw new Error(`Foto muito grande. Máximo: ${window.VMA.LIMITS.MAX_PHOTO_MB}MB`);
       }
 
       const maxAudioBytes = mbToBytes(Number(window.VMA.LIMITS.MAX_AUDIO_MB));
       if (audio.size > maxAudioBytes) {
-        alert(`Áudio muito grande. Máximo: ${window.VMA.LIMITS.MAX_AUDIO_MB}MB`);
-        return;
+        throw new Error(`Áudio muito grande. Máximo: ${window.VMA.LIMITS.MAX_AUDIO_MB}MB`);
       }
-
       if (!isMp3(audio)) {
-        alert("O áudio deve ser MP3.");
-        return;
+        throw new Error("O áudio deve ser MP3.");
       }
 
       const dur = await getAudioDurationSeconds(audio);
       if (dur && dur > Number(window.VMA.LIMITS.MAX_AUDIO_SECONDS)) {
-        alert(`Áudio muito longo. Máximo: ${Math.floor(Number(window.VMA.LIMITS.MAX_AUDIO_SECONDS) / 60)} minutos.`);
-        return;
+        throw new Error(`Áudio muito longo. Máximo: ${Math.floor(Number(window.VMA.LIMITS.MAX_AUDIO_SECONDS) / 60)} minutos.`);
       }
 
-      // 1) Reserva vaga e gera código
+      console.log("[VMA] Gerando ID...");
       const candidateId = await nextCandidateId();
+      console.log("[VMA] ID gerado:", candidateId);
 
-      // 2) Upload Storage
+      console.log("[VMA] Upload Storage (foto e áudio)...");
       const [photoUp, audioUp] = await Promise.all([
         uploadToStorage(candidateId, "photo", photo),
         uploadToStorage(candidateId, "audio", audio),
       ]);
 
-      // 3) Firestore candidato
+      console.log("[VMA] Upload concluído:", { photoUp, audioUp });
+
+      console.log("[VMA] Salvando no Firestore...");
       await setDoc(
         doc(db, "candidates", candidateId),
         {
@@ -196,15 +205,21 @@ async function uploadToStorage(candidateId, kind, file) {
         { merge: true }
       );
 
+      console.log("[VMA] Firestore OK ✔");
       alert(`Inscrição concluída! Seu código é: ${candidateId}`);
+
+      form.reset();
+      setBusy(submitBtn, false, "Concluir inscrição");
       window.location.href = "./candidato.html";
     } catch (err) {
       const msg = String(err?.message || err || "");
+      console.error("[VMA] Erro na inscrição:", err);
       if (msg.includes("INSCRICOES_ENCERRADAS")) {
         alert("Inscrições encerradas: limite máximo atingido.");
       } else {
         alert("Erro ao concluir inscrição: " + msg);
       }
+      setBusy(submitBtn, false, "Concluir inscrição");
     }
   });
 })();
