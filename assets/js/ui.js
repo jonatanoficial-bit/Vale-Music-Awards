@@ -1,14 +1,33 @@
 // assets/js/ui.js
 // Header/Footer premium com menu responsivo (hamburger) para mobile.
-// Versão "blindada": tenta múltiplos caminhos de logo e usa fallback se não encontrar.
+// LOGO: configure LOGO_PATH abaixo com o caminho REAL do seu logo no projeto.
 
 (function () {
+  // =========================
+  // CONFIG (AJUSTE AQUI)
+  // =========================
+  const LOGO_PATH = "./assets/img/logo.png"; // <<< TROQUE para o caminho real do seu logo
+
   const headerMount = document.getElementById("headerMount");
   const footerMount = document.getElementById("footerMount");
 
   const base = (() => {
     const p = window.location.pathname || "";
     return p.includes("/pages/") ? ".." : ".";
+  })();
+
+  // Resolve LOGO_PATH respeitando base (pages vs root)
+  const resolvedLogo = (() => {
+    // Se LOGO_PATH começar com "./assets" e estivermos em /pages, vira "../assets"
+    if (LOGO_PATH.startsWith("./assets/")) return `${base}${LOGO_PATH.replace(".", "")}`;
+    // Se LOGO_PATH começar com "../assets", mantém
+    if (LOGO_PATH.startsWith("../assets/")) return LOGO_PATH;
+    // Se for absoluto (/assets/...), mantém
+    if (LOGO_PATH.startsWith("/")) return LOGO_PATH;
+    // Caso seja relativo simples (ex: "assets/img/logo.png")
+    if (LOGO_PATH.startsWith("assets/")) return `${base}/${LOGO_PATH}`;
+    // Caso default
+    return LOGO_PATH;
   })();
 
   const navItems = [
@@ -21,50 +40,14 @@
   ];
 
   function normalizePath(href) {
-    // remove "./" e resolve para comparação simples
     return href.replace(/^\.\//, "/").replace(/^\.\.\//, "/");
   }
 
   function isActive(href) {
     const current = (window.location.pathname || "").toLowerCase();
     const target = normalizePath(href).toLowerCase();
-
     if (target.endsWith("/index.html") && (current.endsWith("/") || current.endsWith("/index.html"))) return true;
     return current.endsWith(target);
-  }
-
-  function logoCandidates() {
-    // Tentamos múltiplos caminhos comuns dentro do seu projeto
-    const paths = [
-      `${base}/assets/img/logo.png`,
-      `${base}/assets/img/logo.webp`,
-      `${base}/assets/img/logo.jpg`,
-      `${base}/assets/logo.png`,
-      `${base}/assets/logo.webp`,
-      `${base}/assets/logo.jpg`,
-      `${base}/assets/images/logo.png`,
-      `${base}/assets/images/logo.webp`,
-      `${base}/assets/images/logo.jpg`,
-      `${base}/assets/img/vale.png`,
-      `${base}/assets/img/vale.webp`,
-      `${base}/assets/img/vale.jpg`,
-      `${base}/logo.png`,
-      `${base}/logo.webp`,
-      `${base}/logo.jpg`,
-    ];
-    return paths;
-  }
-
-  function renderLogoHTML() {
-    // Começa com o primeiro candidato; se falhar, trocamos no JS.
-    return `
-      <div class="brand__logoWrap" data-logo>
-        <img class="brand__logo" data-logo-img src="${logoCandidates()[0]}" alt="Vale Produções"/>
-        <div class="brand__logoFallback" data-logo-fallback aria-hidden="true" style="display:none;">
-          <span class="brand__logoBadge">VP</span>
-        </div>
-      </div>
-    `;
   }
 
   function renderHeader() {
@@ -74,7 +57,14 @@
       <header class="siteHeader">
         <div class="container siteHeader__row">
           <a class="brand" href="${base}/index.html" aria-label="Vale Music Awards">
-            ${renderLogoHTML()}
+            <div class="brand__logoWrap">
+              <img class="brand__logo" src="${resolvedLogo}" alt="Vale Produções"
+                   onerror="this.style.display='none'; this.parentElement.querySelector('.brand__logoFallback').style.display='grid';" />
+              <div class="brand__logoFallback" aria-hidden="true" style="display:none;">
+                <span class="brand__logoBadge">VP</span>
+              </div>
+            </div>
+
             <div class="brand__text">
               <div class="brand__title">Vale Music Awards</div>
               <div class="brand__sub">Festival Internacional • Online</div>
@@ -101,17 +91,20 @@
         <aside class="navMobile" id="mobileNav" aria-label="Menu mobile" hidden>
           <div class="navMobile__head">
             <div class="navMobile__brand">
-              <div class="navMobile__logoWrap" data-m-logo>
-                <img class="navMobile__logo" data-m-logo-img src="${logoCandidates()[0]}" alt="Vale Produções"/>
-                <div class="navMobile__logoFallback" data-m-logo-fallback aria-hidden="true" style="display:none;">
+              <div class="navMobile__logoWrap">
+                <img class="navMobile__logo" src="${resolvedLogo}" alt="Vale Produções"
+                     onerror="this.style.display='none'; this.parentElement.querySelector('.navMobile__logoFallback').style.display='grid';" />
+                <div class="navMobile__logoFallback" aria-hidden="true" style="display:none;">
                   <span class="brand__logoBadge">VP</span>
                 </div>
               </div>
+
               <div class="navMobile__titles">
                 <b>Vale Music Awards</b>
                 <span>Menu</span>
               </div>
             </div>
+
             <button class="navClose" type="button" aria-label="Fechar menu">✕</button>
           </div>
 
@@ -131,7 +124,6 @@
       </header>
     `;
 
-    // MENU EVENTS
     const btn = headerMount.querySelector(".navBtn");
     const closeBtn = headerMount.querySelector(".navClose");
     const overlay = headerMount.querySelector("#navOverlay");
@@ -174,55 +166,6 @@
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && btn.getAttribute("aria-expanded") === "true") closeMenu();
     });
-
-    // LOGO RESOLVER (tenta vários paths e aplica fallback se nenhum funcionar)
-    const logoImg = headerMount.querySelector("[data-logo-img]");
-    const logoFallback = headerMount.querySelector("[data-logo-fallback]");
-    const mLogoImg = headerMount.querySelector("[data-m-logo-img]");
-    const mLogoFallback = headerMount.querySelector("[data-m-logo-fallback]");
-
-    const candidates = logoCandidates();
-
-    function setFallback() {
-      if (logoImg) logoImg.style.display = "none";
-      if (logoFallback) logoFallback.style.display = "grid";
-      if (mLogoImg) mLogoImg.style.display = "none";
-      if (mLogoFallback) mLogoFallback.style.display = "grid";
-    }
-
-    function setLogo(src) {
-      if (logoImg) {
-        logoImg.style.display = "block";
-        logoImg.src = src;
-      }
-      if (logoFallback) logoFallback.style.display = "none";
-
-      if (mLogoImg) {
-        mLogoImg.style.display = "block";
-        mLogoImg.src = src;
-      }
-      if (mLogoFallback) mLogoFallback.style.display = "none";
-    }
-
-    async function urlExists(url) {
-      try {
-        const r = await fetch(url, { method: "GET", cache: "no-store" });
-        return r.ok;
-      } catch {
-        return false;
-      }
-    }
-
-    (async function resolveLogo() {
-      for (const url of candidates) {
-        const ok = await urlExists(url);
-        if (ok) {
-          setLogo(url);
-          return;
-        }
-      }
-      setFallback();
-    })();
   }
 
   function renderFooter() {
