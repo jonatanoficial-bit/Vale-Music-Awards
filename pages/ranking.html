@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Ranking • Vale Music Awards</title>
-  <meta name="description" content="Ranking oficial do Vale Music Awards. Veja os talentos mais bem avaliados pela banca profissional." />
+  <meta name="description" content="Ranking oficial do Vale Music Awards. Veja os talentos mais bem avaliados pela banca." />
   <link rel="stylesheet" href="../assets/css/styles.css"/>
 </head>
 <body>
@@ -17,9 +17,8 @@
         <div class="section__head">
           <h1 class="h1">Ranking Oficial</h1>
           <p>
-            Confira os participantes mais bem avaliados do
-            <b>Vale Music Awards</b>.  
-            Ranking transparente, baseado em critérios profissionais.
+            Classificação baseada na média das avaliações dos jurados.
+            O áudio é restrito aos jurados — o ranking é público.
           </p>
         </div>
 
@@ -30,9 +29,10 @@
 
   <div id="footerMount"></div>
 
-  <script src="../assets/js/config.js"></script>
   <script src="../assets/js/ui.js"></script>
-  <script src="../assets/js/storage.js"></script>
-  <script src="../assets/js/ranking.js"></script>
+
+  <script src="../assets/js/vma-config.js"></script>
+  <script type="module" src="../assets/js/firebase.js"></script>
+  <script type="module" src="../assets/js/ranking.js"></script>
 </body>
 </html>
