@@ -1,29 +1,22 @@
-import { db } from "./firebase.js";
+import { db, storage } from "./firebase.js";
 import {
-  doc, getDoc, setDoc, runTransaction, serverTimestamp
+  doc, setDoc, runTransaction, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-// Helpers
+import {
+  ref, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+
 function mbToBytes(mb){ return Math.floor(mb * 1024 * 1024); }
+
 function isMp3(file){
   const t = (file.type || "").toLowerCase();
   const n = (file.name || "").toLowerCase();
   return t === "audio/mpeg" || t === "audio/mp3" || n.endsWith(".mp3");
 }
-function fileToBase64(file){
-  return new Promise((resolve, reject)=>{
-    const r = new FileReader();
-    r.onload = () => {
-      const dataUrl = String(r.result || "");
-      const base64 = dataUrl.split(",")[1] || "";
-      resolve(base64);
-    };
-    r.onerror = reject;
-    r.readAsDataURL(file);
-  });
-}
+
 async function getAudioDurationSeconds(file){
-  return new Promise((resolve, reject)=>{
+  return new Promise((resolve)=>{
     const url = URL.createObjectURL(file);
     const a = new Audio();
     a.preload = "metadata";
@@ -34,15 +27,13 @@ async function getAudioDurationSeconds(file){
     };
     a.onerror = () => {
       URL.revokeObjectURL(url);
-      resolve(0); // se falhar, não trava por duração
+      resolve(0);
     };
     a.src = url;
   });
 }
 
-// Gera código simples
 async function nextCandidateId(){
-  // Ex: VMA-0001 baseado no contador
   const statsRef = doc(db, "meta", "stats");
   const configRef = doc(db, "meta", "config");
 
@@ -58,32 +49,36 @@ async function nextCandidateId(){
     tx.set(statsRef, { registrationsCount: count + 1 }, { merge: true });
 
     const num = count + 1;
-    const code = `VMA-${String(num).padStart(4,"0")}`;
-    return code;
+    return `VMA-${String(num).padStart(4,"0")}`;
   });
 
   return id;
 }
 
-async function uploadToDrive({ kind, file, candidateCode }){
-  const base64 = await fileToBase64(file);
+function getExt(fileName, fallback){
+  const n = (fileName||"").toLowerCase();
+  if(n.endsWith(".mp3")) return "mp3";
+  if(n.endsWith(".png")) return "png";
+  if(n.endsWith(".jpg") || n.endsWith(".jpeg")) return "jpg";
+  return fallback;
+}
 
-  const res = await fetch(window.VMA.DRIVE_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      secret: window.VMA.DRIVE_SECRET,
-      kind,
-      candidateCode,
-      fileName: file.name,
-      mimeType: file.type || (kind === "audio" ? "audio/mpeg" : "image/jpeg"),
-      base64
-    })
-  });
+async function uploadFileToStorage({ candidateId, kind, file }){
+  // Paths:
+  // submissions/VMA-0001/audio.mp3
+  // submissions/VMA-0001/photo.jpg
+  const ext = kind === "audio" ? "mp3" : getExt(file.name, "jpg");
+  const path = `submissions/${candidateId}/${kind}.${ext}`;
 
-  const json = await res.json().catch(()=>null);
-  if(!json || !json.ok) throw new Error(json?.error || "Falha ao enviar para o Drive.");
-  return json; // {fileId, viewUrl, ucUrl}
+  const r = ref(storage, path);
+
+  // metadata com contentType ajuda playback
+  const metadata = { contentType: file.type || (kind==="audio" ? "audio/mpeg" : "image/jpeg") };
+
+  await uploadBytes(r, file, metadata);
+  const url = await getDownloadURL(r);
+
+  return { path, url };
 }
 
 (function(){
@@ -119,7 +114,7 @@ async function uploadToDrive({ kind, file, candidateCode }){
         return;
       }
 
-      // Validações
+      // Limites
       const maxPhoto = mbToBytes(window.VMA.LIMITS.MAX_PHOTO_MB);
       if(photo.size > maxPhoto){
         alert(`Foto muito grande. Máximo: ${window.VMA.LIMITS.MAX_PHOTO_MB}MB`);
@@ -136,23 +131,22 @@ async function uploadToDrive({ kind, file, candidateCode }){
         return;
       }
 
-      // Duração (quando o navegador conseguir ler metadata)
       const dur = await getAudioDurationSeconds(audio);
       if(dur && dur > window.VMA.LIMITS.MAX_AUDIO_SECONDS){
         alert(`Áudio muito longo. Máximo: ${Math.floor(window.VMA.LIMITS.MAX_AUDIO_SECONDS/60)} minutos.`);
         return;
       }
 
-      // 1) Reserva vaga e gera código (trava 100)
+      // 1) gera código e reserva vaga
       const candidateId = await nextCandidateId();
 
-      // 2) Envia arquivos para Drive
+      // 2) upload storage
       const [photoUp, audioUp] = await Promise.all([
-        uploadToDrive({ kind:"photo", file:photo, candidateCode:candidateId }),
-        uploadToDrive({ kind:"audio", file:audio, candidateCode:candidateId }),
+        uploadFileToStorage({ candidateId, kind:"photo", file:photo }),
+        uploadFileToStorage({ candidateId, kind:"audio", file:audio }),
       ]);
 
-      // 3) Salva candidato no Firestore
+      // 3) salva no firestore
       const candRef = doc(db, "candidates", candidateId);
       await setDoc(candRef, {
         id: candidateId,
@@ -163,8 +157,8 @@ async function uploadToDrive({ kind, file, candidateCode }){
         genero,
         bio,
         createdAt: serverTimestamp(),
-        photo: { fileId: photoUp.fileId, ucUrl: photoUp.ucUrl, viewUrl: photoUp.viewUrl },
-        audio: { fileId: audioUp.fileId, ucUrl: audioUp.ucUrl, viewUrl: audioUp.viewUrl },
+        photo: { url: photoUp.url, path: photoUp.path },
+        audio: { url: audioUp.url, path: audioUp.path },
         avgScore100: 0,
         scoresCount: 0
       }, { merge: true });
