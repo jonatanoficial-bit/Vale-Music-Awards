@@ -1,13 +1,12 @@
 // assets/js/ui.js
 // Header/Footer premium com menu responsivo (hamburger) para mobile.
-// Funciona em GitHub Pages/Vercel (estático) e não depende de libs.
+// Versão "blindada": tenta múltiplos caminhos de logo e usa fallback se não encontrar.
 
 (function () {
   const headerMount = document.getElementById("headerMount");
   const footerMount = document.getElementById("footerMount");
 
   const base = (() => {
-    // Se estiver em /pages/ alguma coisa, volta 1 nível para achar /assets e /index.html
     const p = window.location.pathname || "";
     return p.includes("/pages/") ? ".." : ".";
   })();
@@ -21,14 +20,51 @@
     { label: "Área de jurados", href: `${base}/pages/jurados.html` },
   ];
 
+  function normalizePath(href) {
+    // remove "./" e resolve para comparação simples
+    return href.replace(/^\.\//, "/").replace(/^\.\.\//, "/");
+  }
+
   function isActive(href) {
     const current = (window.location.pathname || "").toLowerCase();
-    const target = href.replace(base, "").toLowerCase();
+    const target = normalizePath(href).toLowerCase();
 
-    // Home
     if (target.endsWith("/index.html") && (current.endsWith("/") || current.endsWith("/index.html"))) return true;
+    return current.endsWith(target);
+  }
 
-    return current.endsWith(target.replace("./", "/")) || current.endsWith(target.replace("../", "/"));
+  function logoCandidates() {
+    // Tentamos múltiplos caminhos comuns dentro do seu projeto
+    const paths = [
+      `${base}/assets/img/logo.png`,
+      `${base}/assets/img/logo.webp`,
+      `${base}/assets/img/logo.jpg`,
+      `${base}/assets/logo.png`,
+      `${base}/assets/logo.webp`,
+      `${base}/assets/logo.jpg`,
+      `${base}/assets/images/logo.png`,
+      `${base}/assets/images/logo.webp`,
+      `${base}/assets/images/logo.jpg`,
+      `${base}/assets/img/vale.png`,
+      `${base}/assets/img/vale.webp`,
+      `${base}/assets/img/vale.jpg`,
+      `${base}/logo.png`,
+      `${base}/logo.webp`,
+      `${base}/logo.jpg`,
+    ];
+    return paths;
+  }
+
+  function renderLogoHTML() {
+    // Começa com o primeiro candidato; se falhar, trocamos no JS.
+    return `
+      <div class="brand__logoWrap" data-logo>
+        <img class="brand__logo" data-logo-img src="${logoCandidates()[0]}" alt="Vale Produções"/>
+        <div class="brand__logoFallback" data-logo-fallback aria-hidden="true" style="display:none;">
+          <span class="brand__logoBadge">VP</span>
+        </div>
+      </div>
+    `;
   }
 
   function renderHeader() {
@@ -38,7 +74,7 @@
       <header class="siteHeader">
         <div class="container siteHeader__row">
           <a class="brand" href="${base}/index.html" aria-label="Vale Music Awards">
-            <img class="brand__logo" src="${base}/assets/img/logo.png" alt="Vale Produções"/>
+            ${renderLogoHTML()}
             <div class="brand__text">
               <div class="brand__title">Vale Music Awards</div>
               <div class="brand__sub">Festival Internacional • Online</div>
@@ -65,15 +101,18 @@
         <aside class="navMobile" id="mobileNav" aria-label="Menu mobile" hidden>
           <div class="navMobile__head">
             <div class="navMobile__brand">
-              <img class="navMobile__logo" src="${base}/assets/img/logo.png" alt="Vale Produções"/>
+              <div class="navMobile__logoWrap" data-m-logo>
+                <img class="navMobile__logo" data-m-logo-img src="${logoCandidates()[0]}" alt="Vale Produções"/>
+                <div class="navMobile__logoFallback" data-m-logo-fallback aria-hidden="true" style="display:none;">
+                  <span class="brand__logoBadge">VP</span>
+                </div>
+              </div>
               <div class="navMobile__titles">
                 <b>Vale Music Awards</b>
                 <span>Menu</span>
               </div>
             </div>
-            <button class="navClose" type="button" aria-label="Fechar menu">
-              ✕
-            </button>
+            <button class="navClose" type="button" aria-label="Fechar menu">✕</button>
           </div>
 
           <div class="navMobile__list">
@@ -86,15 +125,13 @@
           </div>
 
           <div class="navMobile__foot">
-            <div class="navMobile__note">
-              Padrão premium • Ouro & Preto • Vale Produções
-            </div>
+            <div class="navMobile__note">Padrão premium • Ouro & Preto • Vale Produções</div>
           </div>
         </aside>
       </header>
     `;
 
-    // Eventos
+    // MENU EVENTS
     const btn = headerMount.querySelector(".navBtn");
     const closeBtn = headerMount.querySelector(".navClose");
     const overlay = headerMount.querySelector("#navOverlay");
@@ -103,7 +140,6 @@
     function openMenu() {
       overlay.hidden = false;
       mobileNav.hidden = false;
-
       requestAnimationFrame(() => {
         overlay.classList.add("is-open");
         mobileNav.classList.add("is-open");
@@ -117,8 +153,6 @@
       mobileNav.classList.remove("is-open");
       btn.setAttribute("aria-expanded", "false");
       document.documentElement.classList.remove("noScroll");
-
-      // Espera animação
       setTimeout(() => {
         overlay.hidden = true;
         mobileNav.hidden = true;
@@ -133,15 +167,62 @@
     closeBtn.addEventListener("click", closeMenu);
     overlay.addEventListener("click", closeMenu);
 
-    // Fecha ao navegar
     headerMount.querySelectorAll(".navMobile__item").forEach(a => {
       a.addEventListener("click", () => closeMenu());
     });
 
-    // Fecha com ESC
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && btn.getAttribute("aria-expanded") === "true") closeMenu();
     });
+
+    // LOGO RESOLVER (tenta vários paths e aplica fallback se nenhum funcionar)
+    const logoImg = headerMount.querySelector("[data-logo-img]");
+    const logoFallback = headerMount.querySelector("[data-logo-fallback]");
+    const mLogoImg = headerMount.querySelector("[data-m-logo-img]");
+    const mLogoFallback = headerMount.querySelector("[data-m-logo-fallback]");
+
+    const candidates = logoCandidates();
+
+    function setFallback() {
+      if (logoImg) logoImg.style.display = "none";
+      if (logoFallback) logoFallback.style.display = "grid";
+      if (mLogoImg) mLogoImg.style.display = "none";
+      if (mLogoFallback) mLogoFallback.style.display = "grid";
+    }
+
+    function setLogo(src) {
+      if (logoImg) {
+        logoImg.style.display = "block";
+        logoImg.src = src;
+      }
+      if (logoFallback) logoFallback.style.display = "none";
+
+      if (mLogoImg) {
+        mLogoImg.style.display = "block";
+        mLogoImg.src = src;
+      }
+      if (mLogoFallback) mLogoFallback.style.display = "none";
+    }
+
+    async function urlExists(url) {
+      try {
+        const r = await fetch(url, { method: "GET", cache: "no-store" });
+        return r.ok;
+      } catch {
+        return false;
+      }
+    }
+
+    (async function resolveLogo() {
+      for (const url of candidates) {
+        const ok = await urlExists(url);
+        if (ok) {
+          setLogo(url);
+          return;
+        }
+      }
+      setFallback();
+    })();
   }
 
   function renderFooter() {
