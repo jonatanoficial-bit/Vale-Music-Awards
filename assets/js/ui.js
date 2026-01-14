@@ -1,34 +1,25 @@
 // assets/js/ui.js
 // Header/Footer premium com menu responsivo (hamburger) para mobile.
-// LOGO: configure LOGO_PATH abaixo com o caminho REAL do seu logo no projeto.
+// Logo configurado para o arquivo existente no repo:
+// assets/img/vale-producao-logo.png
 
 (function () {
   // =========================
-  // CONFIG (AJUSTE AQUI)
+  // CONFIG
   // =========================
-  const LOGO_PATH = "./assets/img/logo.png"; // <<< TROQUE para o caminho real do seu logo
+  const LOGO_RELATIVE_PATH = "assets/img/vale-producao-logo.png";
 
   const headerMount = document.getElementById("headerMount");
   const footerMount = document.getElementById("footerMount");
 
+  // base = "." para páginas na raiz (index.html)
+  // base = ".." para páginas dentro de /pages/ (pages/inscricao.html etc)
   const base = (() => {
     const p = window.location.pathname || "";
     return p.includes("/pages/") ? ".." : ".";
   })();
 
-  // Resolve LOGO_PATH respeitando base (pages vs root)
-  const resolvedLogo = (() => {
-    // Se LOGO_PATH começar com "./assets" e estivermos em /pages, vira "../assets"
-    if (LOGO_PATH.startsWith("./assets/")) return `${base}${LOGO_PATH.replace(".", "")}`;
-    // Se LOGO_PATH começar com "../assets", mantém
-    if (LOGO_PATH.startsWith("../assets/")) return LOGO_PATH;
-    // Se for absoluto (/assets/...), mantém
-    if (LOGO_PATH.startsWith("/")) return LOGO_PATH;
-    // Caso seja relativo simples (ex: "assets/img/logo.png")
-    if (LOGO_PATH.startsWith("assets/")) return `${base}/${LOGO_PATH}`;
-    // Caso default
-    return LOGO_PATH;
-  })();
+  const logoSrc = `${base}/${LOGO_RELATIVE_PATH}`;
 
   const navItems = [
     { label: "Início", href: `${base}/index.html` },
@@ -46,7 +37,10 @@
   function isActive(href) {
     const current = (window.location.pathname || "").toLowerCase();
     const target = normalizePath(href).toLowerCase();
-    if (target.endsWith("/index.html") && (current.endsWith("/") || current.endsWith("/index.html"))) return true;
+
+    if (target.endsWith("/index.html") && (current.endsWith("/") || current.endsWith("/index.html"))) {
+      return true;
+    }
     return current.endsWith(target);
   }
 
@@ -58,7 +52,7 @@
         <div class="container siteHeader__row">
           <a class="brand" href="${base}/index.html" aria-label="Vale Music Awards">
             <div class="brand__logoWrap">
-              <img class="brand__logo" src="${resolvedLogo}" alt="Vale Produções"
+              <img class="brand__logo" src="${logoSrc}" alt="Vale Produções"
                    onerror="this.style.display='none'; this.parentElement.querySelector('.brand__logoFallback').style.display='grid';" />
               <div class="brand__logoFallback" aria-hidden="true" style="display:none;">
                 <span class="brand__logoBadge">VP</span>
@@ -72,11 +66,15 @@
           </a>
 
           <nav class="navDesk" aria-label="Menu principal">
-            ${navItems.map(i => `
+            ${navItems
+              .map(
+                (i) => `
               <a class="navLink ${isActive(i.href) ? "is-active" : ""}" href="${i.href}">
                 ${i.label}
               </a>
-            `).join("")}
+            `
+              )
+              .join("")}
           </nav>
 
           <button class="navBtn" type="button" aria-label="Abrir menu" aria-controls="mobileNav" aria-expanded="false">
@@ -92,7 +90,7 @@
           <div class="navMobile__head">
             <div class="navMobile__brand">
               <div class="navMobile__logoWrap">
-                <img class="navMobile__logo" src="${resolvedLogo}" alt="Vale Produções"
+                <img class="navMobile__logo" src="${logoSrc}" alt="Vale Produções"
                      onerror="this.style.display='none'; this.parentElement.querySelector('.navMobile__logoFallback').style.display='grid';" />
                 <div class="navMobile__logoFallback" aria-hidden="true" style="display:none;">
                   <span class="brand__logoBadge">VP</span>
@@ -109,12 +107,16 @@
           </div>
 
           <div class="navMobile__list">
-            ${navItems.map(i => `
+            ${navItems
+              .map(
+                (i) => `
               <a class="navMobile__item ${isActive(i.href) ? "is-active" : ""}" href="${i.href}">
                 <span>${i.label}</span>
                 <span class="navMobile__chev">→</span>
               </a>
-            `).join("")}
+            `
+              )
+              .join("")}
           </div>
 
           <div class="navMobile__foot">
@@ -159,7 +161,7 @@
     closeBtn.addEventListener("click", closeMenu);
     overlay.addEventListener("click", closeMenu);
 
-    headerMount.querySelectorAll(".navMobile__item").forEach(a => {
+    headerMount.querySelectorAll(".navMobile__item").forEach((a) => {
       a.addEventListener("click", () => closeMenu());
     });
 
