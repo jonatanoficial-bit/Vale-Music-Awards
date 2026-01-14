@@ -1,10 +1,8 @@
 // assets/js/vma-config.js
-// Configurações globais do Vale Music Awards (sem Drive / sem Apps Script)
-
 window.VMA = {
   FESTIVAL_NAME: "Vale Music Awards",
 
-  // IMPORTANTE: aqui definimos que o upload é via Firebase Storage
+  // Upload do navegador precisa ser Storage (Apps Script bloqueia por CORS no GitHub Pages)
   UPLOAD_PROVIDER: "firebase",
 
   LIMITS: {
@@ -14,7 +12,6 @@ window.VMA = {
     MAX_PHOTO_MB: 1.5,
   },
 
-  // 10 critérios (0-10) = soma final 0-100
   CRITERIA: [
     { key: "afinacao", label: "Afinação" },
     { key: "ritmo", label: "Ritmo / Tempo" },
