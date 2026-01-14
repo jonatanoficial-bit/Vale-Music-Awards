@@ -1,14 +1,9 @@
-// Config do Vale Music Awards (sem mexer no resto)
 window.VMA = {
   FESTIVAL_NAME: "Vale Music Awards",
 
-  // Apps Script Web App URL (Drive uploader)
-  DRIVE_ENDPOINT: "COLE_AQUI_A_URL_DO_WEB_APP",
+  // Upload de arquivos via Firebase Storage (recomendado)
+  UPLOAD_PROVIDER: "firebase",
 
-  // Segredo do Apps Script (o mesmo que você colocou no Code.gs)
-  DRIVE_SECRET: "TROQUE_POR_UM_SEGREDO_FORTE",
-
-  // Limites
   LIMITS: {
     MAX_CANDIDATES: 100,
     MAX_AUDIO_MB: 6,
@@ -16,7 +11,6 @@ window.VMA = {
     MAX_PHOTO_MB: 1.5
   },
 
-  // Critérios (10 x 10 = 100)
   CRITERIA: [
     { key: "afinacao", label: "Afinação" },
     { key: "ritmo", label: "Ritmo / Tempo" },
