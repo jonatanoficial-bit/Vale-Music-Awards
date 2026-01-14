@@ -18,8 +18,7 @@
           <h1 class="h1">Inscrição Oficial</h1>
           <p>
             Participe do <b>Vale Music Awards</b>.  
-            Preencha seus dados, envie sua <b>foto</b> e seu <b>áudio</b>.  
-            Ao final, você receberá um código exclusivo para acompanhar sua avaliação.
+            Envie sua <b>foto</b> e seu <b>áudio (MP3)</b>. Ao final, você receberá um <b>código</b> para acompanhar sua avaliação.
           </p>
         </div>
 
@@ -71,13 +70,13 @@
             </label>
 
             <div class="field" style="grid-column:1/-1">
-              <span>Foto</span>
-              <input id="photoInput" type="file" accept="image/*"/>
+              <span>Foto (até 1,5MB)</span>
+              <input id="photoInput" type="file" accept="image/*" required/>
             </div>
 
             <div class="field" style="grid-column:1/-1">
-              <span>Áudio</span>
-              <input id="audioInput" type="file" accept="audio/*"/>
+              <span>Áudio MP3 (até 6MB / até 3 minutos)</span>
+              <input id="audioInput" type="file" accept="audio/mpeg,audio/mp3" required/>
             </div>
           </div>
 
@@ -86,6 +85,10 @@
               Concluir inscrição
             </button>
           </div>
+
+          <div style="color:var(--muted2);font-size:12px;margin-top:10px">
+            Ao enviar, você concorda com o regulamento do festival. Conteúdo ofensivo/vulgar será desclassificado.
+          </div>
         </form>
       </div>
     </section>
@@ -93,9 +96,13 @@
 
   <div id="footerMount"></div>
 
-  <script src="../assets/js/config.js"></script>
+  <!-- mantém sua UI (header/footer) -->
   <script src="../assets/js/ui.js"></script>
-  <script src="../assets/js/storage.js"></script>
-  <script src="../assets/js/inscricao.js"></script>
+
+  <!-- config do festival + firebase + inscrição (module) -->
+  <script src="../assets/js/vma-config.js"></script>
+  <script type="module" src="../assets/js/firebase.js"></script>
+  <script type="module" src="../assets/js/inscricao.js"></script>
 </body>
 </html>
+s
