@@ -4,6 +4,7 @@
 // - Envia avaliação travada via Apps Script (?action=rate)
 // - Soma automática 0..100 (10 critérios de 0..10)
 // - Travamento no front após enviar + bloqueio no backend (ALREADY_RATED)
+// - FIX DEFINITIVO: Foto via thumbnail do Drive + Áudio via iframe /preview (Drive Player)
 
 (() => {
   "use strict";
@@ -12,17 +13,12 @@
      CONFIG
   ========================= */
 
-  // Tenta ler config global (se existir)
-  // window.VMA_CONFIG = { APPS_SCRIPT_URL, API_SECRET, ... }
   const CFG = (typeof window !== "undefined" && window.VMA_CONFIG) ? window.VMA_CONFIG : {};
 
-  // Troque aqui se não estiver usando vma-config.js
   const APPS_SCRIPT_URL =
     CFG.APPS_SCRIPT_URL ||
     "https://script.google.com/macros/s/AKfycbxRvwp0aOtgENIj6Hm0H_zb0IsDBzW-QM6BB7_eNKDzp5tSFVMgucItzidnKofVfKHw/exec";
 
-  // Se você NÃO quiser expor secret no front, dá pra tirar e usar outra estratégia.
-  // Por enquanto, seguimos a mesma abordagem simples que você já aceitou.
   const API_SECRET = CFG.API_SECRET || "VMA-2026-VALE-SEGREDO-9137";
 
   const CRITERIA = [
@@ -56,7 +52,6 @@
   function q(sel) { return document.querySelector(sel); }
 
   function bindDom() {
-    // Tente localizar IDs comuns (compatível com seu layout atual)
     el.status = q("#statusBox") || q(".status-box") || q("[data-status]");
     el.list = q("#candidatesList") || q("#candidates") || q("[data-candidates]");
     el.jurorInput = q("#jurorId") || q("input[name='jurorId']") || q("[data-juror]");
@@ -65,7 +60,6 @@
   }
 
   function setStatus(msg, type = "info") {
-    // type: info | ok | warn | err
     const prefix =
       type === "ok" ? "✅ " :
       type === "warn" ? "⚠️ " :
@@ -75,7 +69,6 @@
       el.status.textContent = prefix + msg;
       el.status.dataset.type = type;
     } else {
-      // fallback
       console[type === "err" ? "error" : "log"](prefix + msg);
     }
   }
@@ -122,7 +115,6 @@
   function buildUrl(params) {
     const u = new URL(APPS_SCRIPT_URL);
     Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, String(v)));
-    // cache buster
     u.searchParams.set("_ts", String(Date.now()));
     return u.toString();
   }
@@ -136,27 +128,36 @@
     return res.json();
   }
 
-  // Drive "uc?export=download&id=" geralmente força download.
-  // Para IMG costuma ser melhor export=view.
-  // Para AUDIO, alguns browsers tocam mesmo com download, outros não.
-  // Então: tentamos "export=download" no <audio>, e damos botão "Abrir áudio" como fallback.
-  function normalizeDriveUcUrl(url, mode = "download") {
-    const s = String(url || "").trim();
+  function extractDriveFileId(text) {
+    const s = String(text || "").trim();
     if (!s) return "";
-    // Se já é uc?export=...
-    if (s.includes("drive.google.com/uc?")) {
-      // troca apenas export
-      return s.replace(/export=(download|view)/, `export=${mode}`);
-    }
-    // tenta extrair id
-    const idMatch =
-      s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/) ||
-      s.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/) ||
-      s.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
-    if (idMatch && idMatch[1]) {
-      return `https://drive.google.com/uc?export=${mode}&id=${idMatch[1]}`;
-    }
-    return s; // fallback
+
+    // uc?id=FILEID
+    let m = s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
+    if (m && m[1]) return m[1];
+
+    // /file/d/FILEID/
+    m = s.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/);
+    if (m && m[1]) return m[1];
+
+    // /d/FILEID
+    m = s.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+    if (m && m[1]) return m[1];
+
+    return "";
+  }
+
+  // ✅ Foto estável no site: thumbnail (hotlink robusto)
+  function drivePhotoThumbUrl(fileId, size = 1000) {
+    if (!fileId) return "";
+    // thumbnail geralmente funciona bem em <img>
+    return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w${size}`;
+  }
+
+  // ✅ Áudio definitivo sem 0:00: player oficial do Drive
+  function drivePreviewUrl(fileId) {
+    if (!fileId) return "";
+    return `https://drive.google.com/file/d/${encodeURIComponent(fileId)}/preview`;
   }
 
   function computeTotal(cardEl) {
@@ -172,7 +173,6 @@
     inputs.forEach(i => {
       if (i.dataset.allow !== "1") i.disabled = disabled;
     });
-    // Mantém botão "Atualizar" fora do card
   }
 
   /* =========================
@@ -192,15 +192,18 @@
     }
 
     const jurorId = getJurorId();
+
     const html = candidates.map(c => {
       const id = safeText(c.candidateId || "");
       const name = safeText(c.artisticName || c.name || "Candidato");
       const city = safeText(c.city || "");
       const genre = safeText(c.genre || "");
 
-      const photoUrl = normalizeDriveUcUrl(c.photoUrl, "view");
-      const audioUrl = normalizeDriveUcUrl(c.audioUrl, "download"); // tentamos tocar
-      const audioOpen = normalizeDriveUcUrl(c.audioUrl, "download");
+      const photoId = extractDriveFileId(c.photoUrl);
+      const audioId = extractDriveFileId(c.audioUrl);
+
+      const photoSrc = photoId ? drivePhotoThumbUrl(photoId, 1200) : "";
+      const audioPreview = audioId ? drivePreviewUrl(audioId) : "";
 
       const locked = jurorId && id ? isLocked(jurorId, id) : false;
 
@@ -223,8 +226,14 @@
         <section class="candidate-card" data-candidate="${id}">
           <div class="cand-top">
             <div class="cand-photo">
-              <img src="${safeText(photoUrl)}" alt="Foto de ${name}" loading="lazy" onerror="this.style.opacity='0.2';">
+              ${
+                photoSrc
+                  ? `<img src="${safeText(photoSrc)}" alt="Foto de ${name}" loading="lazy"
+                       onerror="this.style.opacity='0.25'; this.alt='Foto indisponível';">`
+                  : `<div class="photo-fallback">Sem foto</div>`
+              }
             </div>
+
             <div class="cand-meta">
               <div class="cand-name">${name}</div>
               <div class="cand-tags">
@@ -234,8 +243,23 @@
               </div>
 
               <div class="cand-audio">
-                <audio controls preload="metadata" src="${safeText(audioUrl)}"></audio>
-                <a class="audio-open" href="${safeText(audioOpen)}" target="_blank" rel="noopener">Abrir áudio</a>
+                ${
+                  audioPreview
+                    ? `
+                      <div class="audio-embed">
+                        <iframe
+                          src="${safeText(audioPreview)}"
+                          allow="autoplay"
+                          loading="lazy"
+                          title="Player de áudio - ${name}">
+                        </iframe>
+                      </div>
+                      <a class="audio-open" href="${safeText(audioPreview)}" target="_blank" rel="noopener">
+                        Abrir áudio
+                      </a>
+                    `
+                    : `<div class="audio-fallback">Sem áudio</div>`
+                }
               </div>
             </div>
 
@@ -264,13 +288,11 @@
 
     el.list.innerHTML = html;
 
-    // binds
     [...el.list.querySelectorAll(".candidate-card")].forEach(card => {
       const candidateId = card.dataset.candidate;
       const jurorIdNow = getJurorId();
       const locked = jurorIdNow && candidateId ? isLocked(jurorIdNow, candidateId) : false;
 
-      // slider updates
       card.querySelectorAll("input[type='range'][data-crit]").forEach(r => {
         r.addEventListener("input", () => {
           const key = r.dataset.crit;
@@ -292,7 +314,6 @@
         });
       }
 
-      // lock UI if already rated
       const lockHint = card.querySelector("[data-lockhint]");
       if (locked) {
         if (lockHint) lockHint.textContent = "Avaliação já enviada por este jurado (travada).";
@@ -319,7 +340,6 @@
         throw new Error(data?.error || "Resposta inválida da API.");
       }
 
-      // Alguns scripts retornam { candidates: [] }
       const candidates = data.candidates || [];
       renderCandidates(candidates);
     } catch (err) {
@@ -354,7 +374,6 @@
       return r ? Number(r.value || 0) : 0;
     });
 
-    // valida 0..10
     for (const n of sliders) {
       if (!Number.isFinite(n) || n < 0 || n > 10) {
         setStatus("Notas inválidas. Use valores de 0 a 10.", "err");
@@ -375,8 +394,6 @@
 
     try {
       setStatus(`Enviando avaliação (${candidateId})...`, "info");
-
-      // trava visual imediatamente
       disableCard(cardEl, true);
 
       const url = buildUrl({
@@ -390,11 +407,9 @@
       const data = await fetchJson(url);
 
       if (!data || data.ok !== true) {
-        // destrava se falhar
         disableCard(cardEl, false);
         const msg = data?.error || "Falha ao salvar nota.";
         if (msg === "ALREADY_RATED") {
-          // trava mesmo assim (servidor já gravou antes)
           setLock(jurorId, candidateId);
           disableCard(cardEl, true);
           setStatus("Você já avaliou este candidato. (Travado)", "warn");
@@ -410,15 +425,11 @@
 
       setStatus(`Avaliação enviada! Total: ${data.total100}/100 — Ranking atualizado.`, "ok");
 
-      // Opcional: recarregar candidatos/ranking após um pequeno delay
       await sleep(600);
-      // não precisa recarregar sempre, mas ajuda a refletir status
-      // await loadCandidates();
 
     } catch (err) {
       console.error(err);
       setStatus(`Erro ao enviar avaliação: ${err.message}`, "err");
-      // destrava para tentar novamente
       disableCard(cardEl, false);
     }
   }
@@ -430,7 +441,6 @@
   function init() {
     bindDom();
 
-    // preenche jurorId salvo
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved && el.jurorInput && !el.jurorInput.value) {
       el.jurorInput.value = saved;
@@ -453,7 +463,6 @@
       el.btnRefresh.addEventListener("click", () => loadCandidates());
     }
 
-    // autoload
     loadCandidates();
   }
 
