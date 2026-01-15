@@ -1,70 +1,34 @@
 // assets/js/jurados.js
-// Vale Music Awards - Área de Jurados
-// Login: Firebase Auth (já existente no seu site)
-// Dados: Google Forms + Sheets + Apps Script (candidates / rate / ranking)
+// Vale Music Awards — Área do Jurado (consome Apps Script: candidates + rate)
+// Requisitos:
+// - vma-config.js carregado antes
+// - jurados.html deve ter contêiner #candidatesList, #statusBar, #jurorIdInput, #saveJurorIdBtn
 
-import { VMA_CONFIG } from "./vma-config.js";
+(function () {
+  "use strict";
 
-// Tentamos usar Firebase Auth para garantir acesso
-// (se o seu firebase.js exporta "auth", funciona automaticamente).
-let auth = null;
-try {
-  // se existir no seu projeto:
-  // export const auth = getAuth(app);
-  const fb = await import("./firebase.js");
-  auth = fb.auth || null;
-} catch (e) {
-  // Se falhar, ainda podemos rodar, mas sem travar por login.
-  // (Você disse que o login já está funcionando; isso aqui é só fallback.)
-  console.warn("[VMA] Não consegui importar ./firebase.js. Continuando sem checagem de login.", e);
-}
-
-(function initJurados() {
-  const root = document.getElementById("juradosRoot") || document.body;
-  const listEl = document.getElementById("candidatesList");
-  const loadingEl = document.getElementById("loadingJurados");
-  const errorEl = document.getElementById("errorJurados");
-  const userEl = document.getElementById("juradoUser");
-  const refreshBtn = document.getElementById("btnRefreshCandidates");
-
-  const criteria = Array.isArray(VMA_CONFIG?.CRITERIA) && VMA_CONFIG.CRITERIA.length
-    ? VMA_CONFIG.CRITERIA
-    : [
-        { key: "afinacao", label: "Afinação" },
-        { key: "ritmo", label: "Ritmo / Tempo" },
-        { key: "interpretacao", label: "Interpretação" },
-        { key: "dicao", label: "Pronúncia / Dicção" },
-        { key: "timbre", label: "Timbre / Qualidade vocal" },
-        { key: "controle", label: "Controle vocal / Apoio" },
-        { key: "dinamica", label: "Dinâmica" },
-        { key: "extensao", label: "Extensão / Alcance" },
-        { key: "musicalidade", label: "Musicalidade" },
-        { key: "potencial", label: "Potencial artístico" }
-      ];
-
-  function setLoading(isLoading) {
-    if (loadingEl) loadingEl.style.display = isLoading ? "block" : "none";
+  const cfg = window.VMA_CONFIG;
+  if (!cfg || !cfg.APPS_SCRIPT_URL) {
+    alert("Config não carregou: verifique assets/js/vma-config.js no HTML.");
+    return;
   }
 
-  function setError(msg) {
-    if (errorEl) {
-      errorEl.style.display = msg ? "block" : "none";
-      errorEl.textContent = msg || "";
-    } else if (msg) {
-      alert(msg);
-    }
+  const el = {
+    statusBar: document.getElementById("statusBar"),
+    candidatesList: document.getElementById("candidatesList"),
+    jurorIdInput: document.getElementById("jurorIdInput"),
+    saveJurorIdBtn: document.getElementById("saveJurorIdBtn"),
+    refreshBtn: document.getElementById("refreshBtn"),
+  };
+
+  function setStatus(text, kind = "info") {
+    if (!el.statusBar) return;
+    el.statusBar.dataset.kind = kind;
+    el.statusBar.textContent = text;
   }
 
-  function ensureList() {
-    if (listEl) return listEl;
-    const div = document.createElement("div");
-    div.id = "candidatesList";
-    root.appendChild(div);
-    return div;
-  }
-
-  function escapeHtml(s) {
-    return String(s ?? "")
+  function esc(str) {
+    return String(str ?? "")
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;")
@@ -73,364 +37,331 @@ try {
   }
 
   function getJurorId() {
-    // Preferimos UID (estável), senão email (padrão), senão "JUROR"
-    try {
-      const u = auth?.currentUser || null;
-      if (u?.uid) return `J-${u.uid}`;
-      if (u?.email) return `J-${String(u.email).toLowerCase()}`;
-    } catch (_) {}
-    return "JUROR";
+    const saved = localStorage.getItem("vma_juror_id");
+    if (saved) return saved;
+    return "";
   }
 
-  function lockKey(candidateId) {
-    return `VMA_LOCK_${getJurorId()}_${candidateId}`;
+  function saveJurorId(id) {
+    const v = String(id || "").trim();
+    if (!v) return false;
+    localStorage.setItem("vma_juror_id", v);
+    return true;
   }
 
-  function isLocked(candidateId) {
-    return localStorage.getItem(lockKey(candidateId)) === "1";
+  function keyRated(jurorId, candidateId) {
+    return `vma_rated_${jurorId}__${candidateId}`;
   }
 
-  function setLocked(candidateId) {
-    localStorage.setItem(lockKey(candidateId), "1");
+  function isRatedLocal(jurorId, candidateId) {
+    return localStorage.getItem(keyRated(jurorId, candidateId)) === "1";
   }
 
-  function buildCandidatesUrl() {
-    return `${VMA_CONFIG.APPS_SCRIPT_URL}?action=candidates`;
-  }
-
-  function buildRateUrl({ jurorId, candidateId, scores }) {
-    const qs = new URLSearchParams({
-      action: "rate",
-      secret: VMA_CONFIG.SECRET,
-      jurorId,
-      candidateId,
-      scores: scores.join(",")
-    });
-    return `${VMA_CONFIG.APPS_SCRIPT_URL}?${qs.toString()}`;
+  function markRatedLocal(jurorId, candidateId) {
+    localStorage.setItem(keyRated(jurorId, candidateId), "1");
   }
 
   async function fetchJson(url) {
     const res = await fetch(url, { method: "GET" });
     if (!res.ok) {
-      const t = await res.text().catch(() => "");
-      throw new Error(`HTTP ${res.status} ${res.statusText} ${t}`);
+      const txt = await res.text().catch(() => "");
+      throw new Error(`HTTP ${res.status} ${res.statusText} ${txt}`.trim());
     }
     return await res.json();
   }
 
-  function createCandidateCard(candidate) {
-    const {
-      candidateId,
-      name,
-      artisticName,
-      city,
-      genre,
-      whatsapp,
-      photoUrl,
-      audioUrl,
-      avgScore100,
-      scoresCount,
-      status
-    } = candidate;
+  function buildCandidatesUrl() {
+    const u = new URL(cfg.APPS_SCRIPT_URL);
+    u.searchParams.set("action", "candidates");
+    // cache bust
+    u.searchParams.set("_ts", String(Date.now()));
+    return u.toString();
+  }
 
-    const displayName = artisticName || name || candidateId;
+  function buildRateUrl({ jurorId, candidateId, scores }) {
+    const u = new URL(cfg.APPS_SCRIPT_URL);
+    u.searchParams.set("action", "rate");
+    u.searchParams.set("secret", cfg.SECRET);
+    u.searchParams.set("jurorId", jurorId);
+    u.searchParams.set("candidateId", candidateId);
+    u.searchParams.set("scores", scores.join(","));
+    u.searchParams.set("_ts", String(Date.now()));
+    return u.toString();
+  }
 
-    const card = document.createElement("div");
-    card.className = "vma-card vma-candidate";
-    card.dataset.candidateId = candidateId;
+  function sumScores(scores) {
+    return scores.reduce((a, b) => a + b, 0);
+  }
 
-    const locked = isLocked(candidateId);
+  function clampScore(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return 0;
+    return Math.min(10, Math.max(0, x));
+  }
+
+  function createCriterionRow(criterion, idx, defaultValue = 0) {
+    const row = document.createElement("div");
+    row.className = "critRow";
+
+    const left = document.createElement("div");
+    left.className = "critLeft";
+    left.innerHTML = `
+      <div class="critLabel">${esc(criterion.label)}</div>
+      <div class="critHint">${esc(criterion.hint || "")}</div>
+    `;
+
+    const right = document.createElement("div");
+    right.className = "critRight";
+    right.innerHTML = `
+      <input class="critRange" type="range" min="0" max="10" step="1" value="${defaultValue}" data-idx="${idx}">
+      <div class="critValue" data-idx="${idx}">${defaultValue}</div>
+    `;
+
+    row.appendChild(left);
+    row.appendChild(right);
+    return row;
+  }
+
+  function disableCard(card, message) {
+    card.classList.add("locked");
+    const overlay = card.querySelector(".lockedOverlay");
+    if (overlay) {
+      overlay.querySelector(".lockedMsg").textContent = message || "Avaliação registrada e travada.";
+      overlay.style.display = "flex";
+    }
+    const inputs = card.querySelectorAll("input, button, select, textarea");
+    inputs.forEach((i) => (i.disabled = true));
+  }
+
+  function renderCandidateCard(candidate, jurorId) {
+    const cId = candidate.candidateId;
+    const displayName = candidate.artisticName || candidate.name || cId;
+
+    const card = document.createElement("article");
+    card.className = "candCard";
+    card.dataset.candidateId = cId;
+
+    const ratedAlready = isRatedLocal(jurorId, cId);
 
     card.innerHTML = `
-      <div class="vma-cand-header">
-        <div class="vma-cand-left">
-          <div class="vma-cand-photo">
-            ${photoUrl ? `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(displayName)}" />` : `<div class="vma-photo-placeholder">Sem foto</div>`}
-          </div>
-          <div class="vma-cand-meta">
-            <div class="vma-cand-title">
-              <span class="vma-cand-name">${escapeHtml(displayName)}</span>
-              <span class="vma-pill">ID: ${escapeHtml(candidateId)}</span>
-              <span class="vma-pill vma-pill-muted">${escapeHtml(status || "PENDING")}</span>
-            </div>
-            <div class="vma-cand-sub">
-              ${city ? `<span>${escapeHtml(city)}</span>` : ""}
-              ${genre ? `<span>• ${escapeHtml(genre)}</span>` : ""}
-              ${whatsapp ? `<span>• WhatsApp: ${escapeHtml(whatsapp)}</span>` : ""}
-            </div>
-            <div class="vma-cand-scoreinfo">
-              <span class="vma-pill vma-pill-gold">Média: ${Number(avgScore100 || 0).toFixed(2)} / 100</span>
-              <span class="vma-pill">Avaliações: ${Number(scoresCount || 0)}</span>
-            </div>
-          </div>
+      <div class="candTop">
+        <div class="candPhoto">
+          ${candidate.photoUrl ? `<img src="${esc(candidate.photoUrl)}" alt="Foto de ${esc(displayName)}">` : `<div class="photoPh">Sem foto</div>`}
         </div>
+        <div class="candInfo">
+          <div class="candName">${esc(displayName)}</div>
+          <div class="candMeta">
+            <span class="tag">ID: ${esc(cId)}</span>
+            ${candidate.genre ? `<span class="tag">${esc(candidate.genre)}</span>` : ""}
+            ${candidate.city ? `<span class="tag">${esc(candidate.city)}</span>` : ""}
+          </div>
 
-        <div class="vma-cand-right">
-          <div class="vma-audio-box">
-            ${
-              audioUrl
-                ? `<audio controls preload="none" src="${escapeHtml(audioUrl)}"></audio>`
-                : `<div class="vma-audio-missing">Sem áudio</div>`
-            }
+          <div class="audioWrap">
+            ${candidate.audioUrl ? `
+              <audio controls preload="none" src="${esc(candidate.audioUrl)}"></audio>
+            ` : `<div class="muted">Sem áudio disponível</div>`}
           </div>
         </div>
       </div>
 
-      <div class="vma-divider"></div>
-
-      <div class="vma-eval">
-        <div class="vma-eval-top">
-          <div class="vma-eval-title">Avaliação técnica (0–10) • Soma automática (0–100)</div>
-          <div class="vma-eval-total">
-            Total: <span class="vma-total-number">0</span>/100
+      <div class="candBody">
+        <div class="critHeader">
+          <div>
+            <div class="critTitle">Avaliação Técnica</div>
+            <div class="critSub">A nota final (0–100) é calculada automaticamente pela soma dos critérios.</div>
+          </div>
+          <div class="totalBox">
+            <div class="totalLabel">TOTAL</div>
+            <div class="totalValue" id="total_${esc(cId)}">0</div>
+            <div class="totalMax">/ 100</div>
           </div>
         </div>
 
-        <div class="vma-eval-grid"></div>
+        <div class="criteriaList" id="criteria_${esc(cId)}"></div>
 
-        <div class="vma-eval-actions">
-          <button class="vma-btn vma-btn-primary btnEnviarNota" ${locked ? "disabled" : ""}>
-            ${locked ? "Enviado (travado)" : "Enviar nota (travamento definitivo)"}
-          </button>
-          <span class="vma-eval-msg"></span>
+        <div class="actions">
+          <button class="btnPrimary" data-action="submit" data-id="${esc(cId)}">Finalizar avaliação (travar)</button>
+          <div class="smallNote">Após finalizar, não será possível alterar.</div>
         </div>
+      </div>
 
-        <div class="vma-eval-warning">
-          Ao enviar, esta avaliação ficará <strong>travada</strong> e não poderá ser alterada.
+      <div class="lockedOverlay" style="display:none;">
+        <div class="lockedBox">
+          <div class="lockedTitle">Avaliação concluída</div>
+          <div class="lockedMsg">Avaliação registrada e travada.</div>
         </div>
       </div>
     `;
 
-    // Build sliders/inputs
-    const grid = card.querySelector(".vma-eval-grid");
-    const totalEl = card.querySelector(".vma-total-number");
-    const msgEl = card.querySelector(".vma-eval-msg");
-    const btn = card.querySelector(".btnEnviarNota");
+    // Inject criteria
+    const list = card.querySelector(`#criteria_${CSS.escape(cId)}`);
+    const totalEl = card.querySelector(`#total_${CSS.escape(cId)}`);
+    const ranges = [];
 
-    const inputs = [];
-
-    criteria.forEach((c) => {
-      const row = document.createElement("div");
-      row.className = "vma-crit-row";
-      row.innerHTML = `
-        <div class="vma-crit-label">${escapeHtml(c.label)}</div>
-        <div class="vma-crit-input">
-          <input type="number" min="0" max="10" step="1" value="0" class="vma-score-input" ${locked ? "disabled" : ""} />
-        </div>
-      `;
-      const inp = row.querySelector("input");
-      inputs.push(inp);
-
-      inp.addEventListener("input", () => {
-        const n = clampScore(Number(inp.value));
-        inp.value = String(n);
-        updateTotal();
-      });
-
-      grid.appendChild(row);
+    cfg.CRITERIA.forEach((crit, idx) => {
+      const row = createCriterionRow(crit, idx, 0);
+      list.appendChild(row);
     });
 
-    function clampScore(n) {
-      if (!Number.isFinite(n)) return 0;
-      if (n < 0) return 0;
-      if (n > 10) return 10;
-      return Math.round(n);
-    }
+    // Track range inputs
+    const rangeEls = card.querySelectorAll(".critRange");
+    rangeEls.forEach((r) => ranges.push(r));
 
     function updateTotal() {
-      const sum = inputs.reduce((acc, i) => acc + clampScore(Number(i.value)), 0);
-      totalEl.textContent = String(sum);
-      return sum;
+      const scores = ranges.map((r) => clampScore(r.value));
+      const total = sumScores(scores);
+      totalEl.textContent = String(total);
+      // update values next to sliders
+      const valueEls = card.querySelectorAll(".critValue");
+      valueEls.forEach((v) => {
+        const idx = Number(v.dataset.idx);
+        v.textContent = String(scores[idx] ?? 0);
+      });
+      return scores;
     }
 
-    // initial total
-    updateTotal();
+    // Live update
+    ranges.forEach((r) => {
+      r.addEventListener("input", updateTotal);
+      r.addEventListener("change", updateTotal);
+    });
 
-    async function sendRating() {
-      msgEl.textContent = "";
-      setError("");
-
-      if (locked) return;
-
-      // bloqueia se faltar áudio
-      if (!audioUrl) {
-        msgEl.textContent = "Sem áudio para avaliar.";
-        return;
-      }
-
-      const jurorId = getJurorId();
-      const scores = inputs.map((i) => clampScore(Number(i.value)));
-
-      // valida length
-      if (scores.length !== criteria.length) {
-        msgEl.textContent = "Erro interno: critérios incompletos.";
-        return;
-      }
-
-      // Confirm suave (sem quebrar UX)
-      const ok = confirm(
-        `Confirmar envio?\n\nCandidato: ${displayName}\nID: ${candidateId}\nTotal: ${scores.reduce((a,b)=>a+b,0)}/100\n\nApós enviar, NÃO será possível alterar.`
-      );
-      if (!ok) return;
-
-      // trava UI primeiro para evitar duplo clique
-      btn.disabled = true;
-      inputs.forEach((i) => (i.disabled = true));
-      btn.textContent = "Enviando...";
-
+    // Submit
+    const submitBtn = card.querySelector('button[data-action="submit"]');
+    submitBtn.addEventListener("click", async () => {
       try {
-        const url = buildRateUrl({ jurorId, candidateId, scores });
-        const resp = await fetchJson(url);
-
-        if (!resp.ok) {
-          // reabre UI se falhar
-          btn.disabled = false;
-          inputs.forEach((i) => (i.disabled = false));
-          btn.textContent = "Enviar nota (travamento definitivo)";
-
-          if (resp.error === "ALREADY_RATED") {
-            // trava definitivo (porque já foi avaliado antes)
-            setLocked(candidateId);
-            btn.disabled = true;
-            inputs.forEach((i) => (i.disabled = true));
-            btn.textContent = "Enviado (travado)";
-            msgEl.textContent = "Você já avaliou este candidato. (travado)";
-            return;
-          }
-
-          msgEl.textContent = `Erro ao enviar: ${resp.error || "Falha desconhecida"}`;
+        if (!jurorId) {
+          alert("Defina seu ID de jurado (ex: J1, J2, J3...) antes de avaliar.");
+          return;
+        }
+        if (ratedAlready || isRatedLocal(jurorId, cId)) {
+          disableCard(card, "Você já avaliou este candidato. Avaliação travada.");
           return;
         }
 
-        // sucesso: trava definitivo
-        setLocked(candidateId);
-        btn.disabled = true;
-        inputs.forEach((i) => (i.disabled = true));
-        btn.textContent = "Enviado (travado)";
-        msgEl.textContent = `Nota enviada com sucesso. Total: ${resp.total100}/100`;
+        const scores = updateTotal(); // 10 itens
+        const total = sumScores(scores);
 
-        // Atualiza média exibida (busca ranking/candidates novamente)
-        // (não é obrigatório, mas dá sensação “ao vivo”)
-        setTimeout(() => {
-          loadCandidates(true).catch(() => {});
-        }, 1200);
+        if (scores.length !== cfg.CRITERIA.length) {
+          alert("Erro interno: quantidade de critérios inválida.");
+          return;
+        }
+
+        // confirmação premium
+        const ok = confirm(
+          `Confirmar envio da avaliação?\n\nCandidato: ${displayName}\nID: ${cId}\nNota final (automática): ${total}/100\n\nApós enviar, não será possível alterar.`
+        );
+        if (!ok) return;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Enviando...";
+
+        const url = buildRateUrl({ jurorId, candidateId: cId, scores });
+        const resp = await fetchJson(url);
+
+        if (!resp.ok) {
+          const msg = resp.error || "Falha ao registrar avaliação.";
+          if (msg === "ALREADY_RATED") {
+            markRatedLocal(jurorId, cId);
+            disableCard(card, "Você já avaliou este candidato. Avaliação travada.");
+            return;
+          }
+          throw new Error(msg);
+        }
+
+        markRatedLocal(jurorId, cId);
+        disableCard(card, "Avaliação registrada e travada. Ranking será atualizado automaticamente.");
+
+        setStatus("✅ Avaliação enviada. Ranking atualizado automaticamente.", "ok");
       } catch (err) {
         console.error(err);
-
-        // reabre UI se falhar
-        btn.disabled = false;
-        inputs.forEach((i) => (i.disabled = false));
-        btn.textContent = "Enviar nota (travamento definitivo)";
-        msgEl.textContent = `Erro de conexão: ${err.message || err}`;
+        alert("Erro ao enviar avaliação: " + (err?.message || err));
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Finalizar avaliação (travar)";
+        setStatus("⚠️ Falha ao enviar avaliação. Verifique conexão/permissões do Web App.", "warn");
       }
-    }
-
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      sendRating();
     });
 
-    // Se já estiver travado localmente, mantém travado
-    if (locked) {
-      msgEl.textContent = "Este candidato já foi avaliado por você e está travado.";
+    // init total
+    updateTotal();
+
+    // if already rated locally, lock it
+    if (ratedAlready) {
+      disableCard(card, "Você já avaliou este candidato. Avaliação travada.");
     }
 
     return card;
   }
 
-  async function loadCandidates(silent = false) {
-    setError("");
-    if (!silent) setLoading(true);
+  async function loadCandidates() {
+    const jurorId = getJurorId();
+    setStatus("Carregando candidatos...", "info");
+    el.candidatesList.innerHTML = "";
 
-    const container = ensureList();
-    if (!silent) container.innerHTML = "";
+    const url = buildCandidatesUrl();
+    const data = await fetchJson(url);
 
-    try {
-      const url = buildCandidatesUrl();
-      const data = await fetchJson(url);
+    if (!data.ok) throw new Error(data.error || "Erro ao carregar candidatos.");
 
-      if (!data?.ok) {
-        throw new Error(data?.error || "Resposta inválida do servidor.");
-      }
-
-      const candidates = Array.isArray(data.candidates) ? data.candidates : [];
-
-      // Ordena: pendentes primeiro, depois por avg desc
-      candidates.sort((a, b) => {
-        const as = String(a.status || "").toUpperCase();
-        const bs = String(b.status || "").toUpperCase();
-        if (as !== bs) {
-          if (as === "PENDING") return -1;
-          if (bs === "PENDING") return 1;
-        }
-        return (Number(b.avgScore100 || 0) - Number(a.avgScore100 || 0));
-      });
-
-      if (!silent) container.innerHTML = "";
-
-      if (!candidates.length) {
-        const empty = document.createElement("div");
-        empty.className = "vma-empty";
-        empty.textContent = "Nenhum candidato ainda. Aguarde novas inscrições.";
-        container.appendChild(empty);
-        return;
-      }
-
-      for (const c of candidates) {
-        const card = createCandidateCard(c);
-        container.appendChild(card);
-      }
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }
-
-  async function guardAuthAndLoad() {
-    // Se auth existir, exige login
-    if (auth && typeof auth.onAuthStateChanged === "function") {
-      setLoading(true);
-      auth.onAuthStateChanged(async (user) => {
-        if (!user) {
-          setLoading(false);
-          setError("Você precisa estar logado como jurado para acessar esta área.");
-          if (listEl) listEl.innerHTML = "";
-          if (userEl) userEl.textContent = "";
-          return;
-        }
-
-        if (userEl) {
-          userEl.textContent = user.email ? `Jurado: ${user.email}` : `Jurado: ${user.uid}`;
-        }
-
-        try {
-          await loadCandidates(false);
-        } catch (err) {
-          console.error(err);
-          setError(`Falha ao carregar candidatos: ${err.message || err}`);
-        } finally {
-          setLoading(false);
-        }
-      });
+    const candidates = Array.isArray(data.candidates) ? data.candidates : [];
+    if (!candidates.length) {
+      el.candidatesList.innerHTML = `<div class="emptyState">Nenhum candidato encontrado ainda. Assim que o Forms receber respostas, eles aparecerão aqui.</div>`;
+      setStatus("Nenhum candidato no momento.", "info");
       return;
     }
 
-    // Sem auth: apenas carrega
-    if (userEl) userEl.textContent = "Jurado: (modo sem auth)";
-    try {
-      await loadCandidates(false);
-    } catch (err) {
-      console.error(err);
-      setError(`Falha ao carregar candidatos: ${err.message || err}`);
+    // ordena por status e depois por avg
+    candidates.sort((a, b) => {
+      const sa = String(a.status || "");
+      const sb = String(b.status || "");
+      if (sa !== sb) return sa.localeCompare(sb);
+      return (Number(b.avgScore100 || 0) - Number(a.avgScore100 || 0));
+    });
+
+    const frag = document.createDocumentFragment();
+    candidates.forEach((c) => frag.appendChild(renderCandidateCard(c, jurorId)));
+
+    el.candidatesList.appendChild(frag);
+    setStatus(`✅ ${candidates.length} candidato(s) carregado(s).`, "ok");
+  }
+
+  function wireUi() {
+    // juror id
+    const initial = getJurorId();
+    if (el.jurorIdInput) el.jurorIdInput.value = initial;
+
+    if (el.saveJurorIdBtn) {
+      el.saveJurorIdBtn.addEventListener("click", () => {
+        const v = String(el.jurorIdInput?.value || "").trim();
+        if (!v) {
+          alert("Digite um ID de jurado (ex: J1, J2, J3, J4, J5).");
+          return;
+        }
+        saveJurorId(v);
+        alert("ID do jurado salvo: " + v);
+        // recarrega para aplicar travas locais corretamente
+        loadCandidates().catch((e) => {
+          console.error(e);
+          setStatus("⚠️ Erro ao carregar candidatos.", "warn");
+        });
+      });
+    }
+
+    if (el.refreshBtn) {
+      el.refreshBtn.addEventListener("click", () => {
+        loadCandidates().catch((e) => {
+          console.error(e);
+          setStatus("⚠️ Erro ao carregar candidatos.", "warn");
+        });
+      });
     }
   }
 
-  if (refreshBtn) {
-    refreshBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      loadCandidates(false).catch((err) => setError(err.message || String(err)));
-    });
-  }
-
-  // Começa
-  guardAuthAndLoad();
+  // start
+  wireUi();
+  loadCandidates().catch((e) => {
+    console.error(e);
+    setStatus("⚠️ Não foi possível carregar candidatos. Verifique se o Web App está publicado como 'Qualquer pessoa' e se o link está correto.", "warn");
+    el.candidatesList.innerHTML = `<div class="emptyState">Falha ao carregar candidatos. Verifique o link do Web App e as permissões.</div>`;
+  });
 })();
