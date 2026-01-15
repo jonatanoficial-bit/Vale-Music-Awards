@@ -1,38 +1,65 @@
+<!-- pages/ranking.html -->
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Ranking • Vale Music Awards</title>
-  <meta name="description" content="Ranking oficial do Vale Music Awards. Veja os talentos mais bem avaliados pela banca." />
-  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ranking — Vale Music Awards</title>
+  <link rel="icon" href="../assets/img/vale-producao-logo.png" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    .rank-wrap{max-width:1100px;margin:0 auto;padding:28px 16px}
+    .rank-title{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+    .rank-title img{width:44px;height:44px;border-radius:12px;object-fit:contain;background:rgba(255,255,255,.04);padding:8px;border:1px solid rgba(255,255,255,.08)}
+    .rank-grid{display:grid;gap:12px}
+    .rank-card{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:14px 14px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.08);backdrop-filter: blur(10px)}
+    .rank-card .pos{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;font-weight:800;font-size:18px;background:linear-gradient(135deg,rgba(255,211,105,.18),rgba(255,211,105,.06));border:1px solid rgba(255,211,105,.18)}
+    .rank-card .meta{display:flex;align-items:center;gap:12px}
+    .rank-card .meta img{width:54px;height:54px;border-radius:16px;object-fit:cover;border:1px solid rgba(255,255,255,.12)}
+    .rank-card .name{font-weight:800}
+    .rank-card .sub{opacity:.82;font-size:.92rem}
+    .rank-card .score{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+    .rank-card .score strong{font-size:22px}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.25);font-size:.86rem;opacity:.9}
+    .muted{opacity:.75}
+    .loading{padding:16px;border-radius:16px;border:1px dashed rgba(255,255,255,.16);background:rgba(0,0,0,.25)}
+  </style>
 </head>
-<body>
-  <div class="bgfx" aria-hidden="true"></div>
-  <div id="headerMount"></div>
-
-  <main class="page">
-    <section class="section">
-      <div class="container">
-        <div class="section__head">
-          <h1 class="h1">Ranking Oficial</h1>
-          <p>
-            Classificação baseada na média das avaliações dos jurados.
-            O áudio é restrito aos jurados — o ranking é público.
-          </p>
+<body class="vma-body">
+  <header class="vma-header">
+    <div class="vma-header-inner">
+      <a class="vma-brand" href="../index.html">
+        <img class="vma-brand-logo" src="../assets/img/vale-producao-logo.png" alt="Vale Produção" />
+        <div>
+          <div class="vma-brand-title">Vale Music Awards</div>
+          <div class="vma-brand-sub">Festival Internacional • Online</div>
         </div>
+      </a>
+      <nav class="vma-nav">
+        <a href="../index.html#quem-somos">Quem somos</a>
+        <a href="./inscricao.html">Inscrição</a>
+        <a class="active" href="./ranking.html">Ranking</a>
+        <a href="./candidato.html">Área do candidato</a>
+        <a href="./jurados.html" class="gold">Área de jurados</a>
+      </nav>
+    </div>
+  </header>
 
-        <div id="rank"></div>
+  <main class="rank-wrap">
+    <div class="rank-title">
+      <img src="../assets/img/vale-producao-logo.png" alt="" />
+      <div>
+        <h1 style="margin:0">Ranking ao vivo</h1>
+        <div class="muted">Atualiza automaticamente conforme os jurados avaliam.</div>
       </div>
-    </section>
+      <div style="margin-left:auto" class="pill" id="rankStatus">Carregando…</div>
+    </div>
+
+    <div id="rankList" class="rank-grid">
+      <div class="loading">Carregando ranking…</div>
+    </div>
   </main>
 
-  <div id="footerMount"></div>
-
-  <script src="../assets/js/ui.js"></script>
-
-  <script src="../assets/js/vma-config.js"></script>
-  <script type="module" src="../assets/js/firebase.js"></script>
   <script type="module" src="../assets/js/ranking.js"></script>
 </body>
 </html>
