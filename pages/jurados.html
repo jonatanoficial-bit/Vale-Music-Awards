@@ -1,136 +1,479 @@
-<!-- pages/jurados.html -->
 <!doctype html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Jurados — Vale Music Awards</title>
-  <link rel="icon" href="../assets/img/vale-producao-logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Área de Jurados — Vale Music Awards</title>
+
+  <!-- SEO básico -->
+  <meta name="description" content="Área de jurados do Vale Music Awards. Acesso restrito para avaliação técnica dos candidatos." />
+  <meta name="theme-color" content="#0b0b0c" />
+
+  <!-- Fonte (opcional) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- CSS do projeto (ajuste se o seu caminho for diferente) -->
   <link rel="stylesheet" href="../assets/css/style.css" />
+
   <style>
-    .wrap{max-width:1180px;margin:0 auto;padding:26px 16px}
-    .grid{display:grid;grid-template-columns:380px 1fr;gap:16px}
-    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
-
-    .panel{border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
-      border:1px solid rgba(255,255,255,.08);backdrop-filter: blur(12px); padding:14px}
-    .panel h2{margin:6px 0 10px}
-    .muted{opacity:.78}
-
-    .login{display:grid;gap:10px}
-    .field{display:grid;gap:6px}
-    .field label{font-weight:700;font-size:.92rem;opacity:.9}
-    .field input, .field select{
-      width:100%; padding:12px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.35); color:#fff; outline:none;
-    }
-    .btn{
-      display:inline-flex;justify-content:center;align-items:center;gap:10px;
-      padding:12px 14px;border-radius:14px;border:1px solid rgba(255,211,105,.22);
-      background:linear-gradient(135deg,rgba(255,211,105,.22),rgba(255,211,105,.08));
-      color:#fff;font-weight:900;cursor:pointer
-    }
-    .btn.secondary{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.06);font-weight:800}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-
-    .cand-list{display:grid;gap:10px;max-height:520px;overflow:auto;padding-right:6px}
-    .cand{display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:center;
-      padding:12px;border-radius:18px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.25);cursor:pointer}
-    .cand:hover{border-color:rgba(255,211,105,.22)}
-    .cand.active{border-color:rgba(255,211,105,.36);background:linear-gradient(135deg,rgba(255,211,105,.10),rgba(0,0,0,.24))}
-    .cand img{width:54px;height:54px;border-radius:16px;object-fit:cover;border:1px solid rgba(255,255,255,.12)}
-    .cand .name{font-weight:900}
-    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.25);font-size:.85rem;opacity:.9}
-    .right{display:flex;gap:8px;align-items:center;justify-content:flex-end}
-
-    .viewer{display:grid;gap:12px}
-    .hero{display:flex;gap:12px;align-items:center}
-    .hero img{width:78px;height:78px;border-radius:22px;object-fit:cover;border:1px solid rgba(255,255,255,.12)}
-    .hero .title{font-size:1.15rem;font-weight:950}
-    .hero .sub{opacity:.78}
-
-    .criteria{display:grid;gap:10px}
-    .crit{display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:center;
-      padding:10px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.25)}
-    .crit input[type="number"]{
-      width:110px; text-align:center; font-weight:900; font-size:1rem;
-      padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.35);color:#fff
+    :root{
+      --bg: #0b0b0c;
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.08);
+      --stroke: rgba(255,255,255,0.10);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.70);
+      --gold1: #d6b35f;
+      --gold2: #f2d28a;
+      --danger: #ff5a5f;
+      --ok: #6ee7b7;
+      --shadow: 0 14px 60px rgba(0,0,0,0.55);
+      --radius: 18px;
     }
 
-    .sum{display:flex;align-items:center;justify-content:space-between;gap:10px;
-      padding:12px;border-radius:18px;border:1px solid rgba(255,211,105,.22);
-      background:linear-gradient(135deg,rgba(255,211,105,.14),rgba(0,0,0,.25))}
-    .sum strong{font-size:1.3rem}
-    .lock{padding:12px;border-radius:18px;border:1px dashed rgba(255,255,255,.18);background:rgba(0,0,0,.25)}
-    audio{width:100%}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(214,179,95,0.18), transparent 55%),
+                  radial-gradient(900px 700px at 90% 20%, rgba(242,210,138,0.12), transparent 50%),
+                  radial-gradient(900px 900px at 40% 100%, rgba(255,255,255,0.06), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .vma-wrap{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 22px 14px 60px;
+    }
+
+    .vma-topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 14px 14px;
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .vma-brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width: 0;
+    }
+
+    .vma-brand img{
+      width:44px;
+      height:44px;
+      object-fit:contain;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 6px;
+    }
+
+    .vma-brand .t1{
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      line-height: 1.1;
+      font-size: 16px;
+      margin: 0;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
+    .vma-brand .t2{
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
+    .vma-actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap: wrap;
+      justify-content:flex-end;
+    }
+
+    .vma-user{
+      color: var(--muted);
+      font-size: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.25);
+    }
+
+    .vma-btn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      font-weight: 600;
+      letter-spacing: .2px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    .vma-btn:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.09);
+      border-color: rgba(255,255,255,0.22);
+    }
+
+    .vma-btn-primary{
+      border: 1px solid rgba(214,179,95,0.45);
+      background: linear-gradient(180deg, rgba(242,210,138,0.95), rgba(214,179,95,0.85));
+      color: #1a1406;
+      font-weight: 800;
+    }
+
+    .vma-btn-primary:hover{
+      border-color: rgba(214,179,95,0.65);
+      background: linear-gradient(180deg, rgba(242,210,138,1), rgba(214,179,95,0.92));
+    }
+
+    .vma-section{
+      margin-top: 16px;
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.40);
+      overflow: hidden;
+    }
+
+    .vma-section-head{
+      padding: 14px 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap: wrap;
+    }
+
+    .vma-section-head h1{
+      margin:0;
+      font-size: 16px;
+      letter-spacing: .3px;
+      font-weight: 800;
+    }
+
+    .vma-section-head p{
+      margin:0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .vma-content{
+      padding: 14px;
+    }
+
+    .vma-loading{
+      display:none;
+      padding: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .vma-error{
+      display:none;
+      padding: 12px 14px;
+      margin: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,90,95,0.40);
+      background: rgba(255,90,95,0.12);
+      color: rgba(255,255,255,0.92);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    /* Cards gerados pelo jurados.js */
+    .vma-card{
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.22);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.35);
+      margin-bottom: 14px;
+    }
+
+    .vma-divider{
+      height:1px;
+      background: rgba(255,255,255,0.10);
+      margin: 14px 0;
+    }
+
+    .vma-cand-header{
+      display:flex;
+      gap: 12px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .vma-cand-left{
+      display:flex;
+      gap: 12px;
+      min-width: 280px;
+      flex: 1 1 520px;
+    }
+
+    .vma-cand-photo img{
+      width: 92px;
+      height: 92px;
+      object-fit: cover;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .vma-photo-placeholder{
+      width: 92px;
+      height: 92px;
+      border-radius: 16px;
+      border: 1px dashed rgba(255,255,255,0.18);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color: var(--muted);
+      font-size: 12px;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .vma-cand-title{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .vma-cand-name{
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .vma-cand-sub{
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      display:flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .vma-cand-scoreinfo{
+      margin-top: 8px;
+      display:flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .vma-pill{
+      font-size: 12px;
+      color: rgba(255,255,255,0.88);
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+
+    .vma-pill-muted{
+      color: rgba(255,255,255,0.72);
+    }
+
+    .vma-pill-gold{
+      border-color: rgba(214,179,95,0.35);
+      background: rgba(214,179,95,0.10);
+    }
+
+    .vma-cand-right{
+      flex: 1 1 360px;
+      min-width: 280px;
+      display:flex;
+      justify-content:flex-end;
+      align-items:flex-start;
+    }
+
+    .vma-audio-box{
+      width: 100%;
+      max-width: 440px;
+    }
+
+    audio{
+      width: 100%;
+      border-radius: 14px;
+      outline: none;
+    }
+
+    .vma-audio-missing{
+      border: 1px dashed rgba(255,255,255,0.18);
+      border-radius: 14px;
+      padding: 12px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      font-size: 12px;
+    }
+
+    .vma-eval-top{
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .vma-eval-title{
+      font-weight: 800;
+      letter-spacing: .2px;
+      font-size: 13px;
+    }
+
+    .vma-eval-total{
+      font-weight: 800;
+      font-size: 13px;
+      border: 1px solid rgba(214,179,95,0.30);
+      background: rgba(214,179,95,0.10);
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+
+    .vma-eval-grid{
+      display:grid;
+      grid-template-columns: 1fr 120px;
+      gap: 10px;
+    }
+
+    .vma-crit-row{
+      display: contents;
+    }
+
+    .vma-crit-label{
+      color: rgba(255,255,255,0.85);
+      font-size: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .vma-crit-input{
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      padding: 0;
+    }
+
+    .vma-score-input{
+      width: 110px;
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.25);
+      color: rgba(255,255,255,0.92);
+      outline: none;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .vma-eval-actions{
+      margin-top: 12px;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .vma-eval-msg{
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .vma-eval-warning{
+      margin-top: 10px;
+      color: rgba(255,255,255,0.72);
+      font-size: 12px;
+      border-left: 3px solid rgba(214,179,95,0.55);
+      padding-left: 10px;
+    }
+
+    .vma-empty{
+      color: var(--muted);
+      font-size: 13px;
+      padding: 12px 0;
+    }
+
+    @media (max-width: 520px){
+      .vma-brand img{ width: 40px; height: 40px; }
+      .vma-cand-left{ min-width: 0; }
+      .vma-cand-right{ justify-content: stretch; }
+      .vma-eval-grid{ grid-template-columns: 1fr; }
+      .vma-crit-input{ justify-content: stretch; }
+      .vma-score-input{ width: 100%; }
+    }
   </style>
 </head>
-<body class="vma-body">
-  <header class="vma-header">
-    <div class="vma-header-inner">
-      <a class="vma-brand" href="../index.html">
-        <img class="vma-brand-logo" src="../assets/img/vale-producao-logo.png" alt="Vale Produção" />
+
+<body>
+  <div class="vma-wrap">
+    <header class="vma-topbar">
+      <div class="vma-brand">
+        <!-- Logo Vale Produção (caminho no seu repo) -->
+        <img src="../assets/img/vale-producao-logo.png" alt="Vale Produção" />
+        <div style="min-width:0">
+          <p class="t1">Vale Music Awards</p>
+          <p class="t2">Área restrita • Jurados profissionais</p>
+        </div>
+      </div>
+
+      <div class="vma-actions">
+        <div class="vma-user" id="juradoUser">Jurado: verificando...</div>
+        <button class="vma-btn" id="btnRefreshCandidates" type="button">Atualizar candidatos</button>
+        <a class="vma-btn vma-btn-primary" href="./ranking.html">Ver ranking</a>
+      </div>
+    </header>
+
+    <section class="vma-section">
+      <div class="vma-section-head">
         <div>
-          <div class="vma-brand-title">Vale Music Awards</div>
-          <div class="vma-brand-sub">Festival Internacional • Online</div>
+          <h1>Avaliação técnica</h1>
+          <p>Notas de 0 a 10 por critério • Soma automática 0 a 100 • Travamento após envio</p>
         </div>
-      </a>
-      <nav class="vma-nav">
-        <a href="../index.html#quem-somos">Quem somos</a>
-        <a href="./inscricao.html">Inscrição</a>
-        <a href="./ranking.html">Ranking</a>
-        <a href="./candidato.html">Área do candidato</a>
-        <a class="active gold" href="./jurados.html">Área de jurados</a>
-      </nav>
-    </div>
-  </header>
+      </div>
 
-  <main class="wrap">
-    <div class="grid">
-      <section class="panel">
-        <h2>Login do jurado</h2>
-        <div class="muted" style="margin-bottom:10px">Acesso restrito. Após logar, você verá todos os candidatos.</div>
+      <div id="loadingJurados" class="vma-loading">Carregando candidatos e materiais...</div>
+      <div id="errorJurados" class="vma-error"></div>
 
-        <div class="login" id="loginBox">
-          <div class="field">
-            <label>Selecione seu nome</label>
-            <select id="jurorSelect"></select>
-          </div>
-          <div class="field">
-            <label>PIN</label>
-            <input id="jurorPin" type="password" inputmode="numeric" placeholder="Ex: 1234" />
-          </div>
-          <div class="right">
-            <button class="btn secondary" id="btnLogout" type="button" style="display:none">Sair</button>
-            <button class="btn" id="btnLogin" type="button">Entrar</button>
-          </div>
-          <div class="pill" id="loginStatus">Aguardando login…</div>
-        </div>
+      <div class="vma-content">
+        <!-- jurados.js vai preencher aqui -->
+        <div id="candidatesList"></div>
+      </div>
+    </section>
+  </div>
 
-        <hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:14px 0">
-
-        <h2>Candidatos</h2>
-        <div class="muted" style="margin-bottom:10px">Clique em um candidato para avaliar.</div>
-        <div class="cand-list" id="candList">
-          <div class="lock">Faça login para carregar os candidatos.</div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>Avaliação</h2>
-        <div class="muted" style="margin-bottom:10px">
-          Preencha 0–10 em cada critério. A nota final (0–100) é calculada automaticamente.
-          Após enviar, a avaliação fica travada.
-        </div>
-
-        <div class="viewer" id="viewer">
-          <div class="lock">Selecione um candidato para começar.</div>
-        </div>
-      </section>
-    </div>
-  </main>
-
+  <!-- IMPORTANTE:
+       1) vma-config.js DEVE existir em /assets/js/vma-config.js
+       2) jurados.js DEVE existir em /assets/js/jurados.js
+       3) Scripts em MODULE para funcionar import/export
+  -->
   <script type="module" src="../assets/js/jurados.js"></script>
 </body>
 </html>
