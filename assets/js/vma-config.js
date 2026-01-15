@@ -1,33 +1,42 @@
 // assets/js/vma-config.js
+// Config central do Vale Music Awards (Site + Apps Script + Forms)
+
 export const VMA_CONFIG = {
-  festivalName: "Vale Music Awards",
+  // Nome do evento
+  FESTIVAL_NAME: "Vale Music Awards",
 
-  // ✅ URL correta do seu WebApp (Apps Script)
-  apiBaseUrl: "https://script.google.com/macros/s/AKfycbxRvwp0aOtgENIj6Hm0H_zb0IsDBzW-QM6BB7_eNKDzp5tSFVMgucItzidnKofVfKHw/exec",
+  // WebApp do Apps Script (SEU LINK CORRETO)
+  APPS_SCRIPT_URL:
+    "https://script.google.com/macros/s/AKfycbxRvwp0aOtgENIj6Hm0H_zb0IsDBzW-QM6BB7_eNKDzp5tSFVMgucItzidnKofVfKHw/exec",
 
-  // Mesma SECRET do Code.gs
-  secret: "VMA-2026-VALE-SEGREDO-9137",
+  // Secret usado no Apps Script (rate) — mantenha igual ao do Code.gs
+  SECRET: "VMA-2026-VALE-SEGREDO-9137",
 
-  // Critérios (10 itens => 0..100)
-  criteria: [
+  // Seu Google Forms oficial (para inscrição e upload de arquivos)
+  FORMS_URL: "https://forms.gle/mTMT3nM4sHpU88mg7",
+
+  // Limites técnicos (apenas para validação/UX no site — o upload real é no Forms)
+  LIMITS: {
+    PHOTO_MAX_MB: 1.5,
+    AUDIO_MAX_MB: 10,     // MP3 3 min normalmente 3–6MB (10MB é confortável)
+    AUDIO_MAX_MIN: 3
+  },
+
+  // Critérios (10 critérios => soma 0..100)
+  CRITERIA: [
     { key: "afinacao", label: "Afinação" },
     { key: "ritmo", label: "Ritmo / Tempo" },
     { key: "interpretacao", label: "Interpretação" },
-    { key: "dicao", label: "Pronúncia e Dicção" },
-    { key: "timbre", label: "Timbre / Qualidade Vocal" },
-    { key: "controle", label: "Controle Vocal (apoio/respiração)" },
-    { key: "dinamica", label: "Dinâmica / Intensidade" },
+    { key: "dicao", label: "Pronúncia / Dicção" },
+    { key: "timbre", label: "Timbre / Qualidade vocal" },
+    { key: "controle", label: "Controle vocal / Apoio" },
+    { key: "dinamica", label: "Dinâmica" },
     { key: "extensao", label: "Extensão / Alcance" },
     { key: "musicalidade", label: "Musicalidade" },
-    { key: "potencial", label: "Potencial Artístico" }
+    { key: "potencial", label: "Potencial artístico" }
   ],
 
-  // Jurados (edite depois)
-  jurors: [
-    { id: "J1", name: "Jurado 1", pin: "1111" },
-    { id: "J2", name: "Jurado 2", pin: "2222" },
-    { id: "J3", name: "Jurado 3", pin: "3333" },
-    { id: "J4", name: "Jurado 4", pin: "4444" },
-    { id: "J5", name: "Jurado 5", pin: "5555" }
-  ]
+  // Logo (caminho RELATIVO correto no site)
+  // (não use link do GitHub blob; use o caminho do site)
+  LOGO_PATH: "../assets/img/vale-producao-logo.png"
 };
