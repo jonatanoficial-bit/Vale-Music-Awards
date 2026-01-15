@@ -1,152 +1,369 @@
+<!-- pages/inscricao.html -->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Inscrição Oficial — Vale Music Awards</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inscrição • Vale Music Awards</title>
   <link rel="icon" href="../assets/img/favicon.png" />
   <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>
+    :root{
+      --bg0:#07070a;
+      --bg1:#0d0d12;
+      --gold:#d6b35e;
+      --gold2:#f2d38a;
+      --text:#e9e9ef;
+      --muted:#b8b8c6;
+      --card: rgba(255,255,255,.06);
+      --stroke: rgba(255,255,255,.12);
+      --shadow: 0 20px 70px rgba(0,0,0,.55);
+    }
+    body{
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(214,179,94,.22), transparent 55%),
+                  radial-gradient(1000px 700px at 80% 20%, rgba(242,211,138,.14), transparent 60%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
+      color: var(--text);
+    }
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 22px 16px 70px;
+    }
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; padding:12px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px; min-width:0;
+    }
+    .brand img{ width:46px; height:46px; object-fit:contain; filter: drop-shadow(0 12px 25px rgba(0,0,0,.5)); }
+    .brand .t{
+      display:flex; flex-direction:column; line-height:1.1;
+      min-width:0;
+    }
+    .brand .t strong{ font-size:15px; letter-spacing:.2px; }
+    .brand .t span{ font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .nav{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .nav a{
+      color: var(--text);
+      text-decoration:none;
+      font-size: 13px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      transition: .2s ease;
+    }
+    .nav a:hover{ transform: translateY(-1px); border-color: rgba(214,179,94,.55); }
 
-  <meta name="theme-color" content="#0b0b0f" />
+    .hero{
+      margin-top:18px;
+      padding: 22px 18px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .hero:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(800px 320px at 10% 0%, rgba(214,179,94,.22), transparent 60%),
+                  radial-gradient(700px 280px at 90% 10%, rgba(242,211,138,.12), transparent 55%);
+      pointer-events:none;
+      opacity:.95;
+    }
+    .hero > *{ position:relative; z-index:1; }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(214,179,94,.10);
+      border: 1px solid rgba(214,179,94,.25);
+      color: var(--gold2);
+      font-size: 12px;
+      letter-spacing:.2px;
+      margin-bottom: 12px;
+    }
+    h1{
+      margin: 4px 0 10px;
+      font-size: clamp(28px, 4vw, 44px);
+      letter-spacing: -0.6px;
+      line-height:1.05;
+    }
+    h1 span{ color: var(--gold2); }
+    .lead{
+      color: var(--muted);
+      font-size: 15px;
+      line-height:1.7;
+      max-width: 70ch;
+    }
+
+    .ctaCard{
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.10);
+      display:flex;
+      gap:16px;
+      align-items:stretch;
+      flex-wrap:wrap;
+    }
+    .ctaLeft{ flex:1 1 340px; min-width: 280px; }
+    .ctaRight{ flex:1 1 280px; min-width: 280px; display:flex; flex-direction:column; gap:12px; justify-content:center; }
+
+    .bigBtn{
+      appearance:none;
+      border: 0;
+      cursor:pointer;
+      width:100%;
+      padding: 16px 18px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--gold2), var(--gold));
+      color: #1a1407;
+      font-weight: 800;
+      letter-spacing: .2px;
+      font-size: 16px;
+      box-shadow: 0 18px 45px rgba(214,179,94,.28);
+      transition: .18s ease;
+    }
+    .bigBtn:hover{ transform: translateY(-1px); }
+    .noteBox{
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.09);
+      color: var(--muted);
+      font-size: 13px;
+      line-height:1.55;
+    }
+    .noteBox strong{ color: var(--text); }
+
+    .checkRow{
+      display:flex; gap:10px; align-items:flex-start;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.09);
+    }
+    .checkRow input{ margin-top:4px; transform: scale(1.15); accent-color: var(--gold); }
+    .checkRow label{ font-size: 13px; color: var(--muted); line-height:1.5; }
+    .checkRow label strong{ color: var(--text); }
+
+    .regTitle{
+      margin-top: 22px;
+      font-size: 18px;
+      letter-spacing: .2px;
+    }
+    .regBox{
+      margin-top: 10px;
+      padding: 16px 16px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 18px 55px rgba(0,0,0,.35);
+    }
+    .regText{
+      color: #e9e9ef;
+      font-size: 13px;
+      line-height:1.75;
+      max-height: 520px;
+      overflow:auto;
+      padding-right: 6px;
+    }
+    .regText h3{
+      margin: 14px 0 6px;
+      font-size: 14px;
+      color: var(--gold2);
+      letter-spacing:.2px;
+    }
+    .regText p{ margin: 0 0 10px; color: #dcdce6; }
+    .regText ul{ margin: 0 0 12px 18px; color:#dcdce6; }
+    .regText li{ margin: 4px 0; }
+
+    @media (max-width: 560px){
+      .nav a{ padding: 9px 10px; font-size: 12px; }
+      .brand img{ width:40px; height:40px; }
+    }
+  </style>
 </head>
-
 <body>
-  <header class="topbar">
-    <a class="brand" href="../index.html" aria-label="Voltar para a página inicial">
-      <img class="brand-logo" src="../assets/img/vale-producao-logo.png" alt="Vale Produção" />
-      <div class="brand-text">
-        <div class="brand-title">Vale Music Awards</div>
-        <div class="brand-subtitle">Festival Internacional • Online</div>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <img src="../assets/img/vale-producao-logo.png" alt="Vale Produções" />
+        <div class="t">
+          <strong>Vale Music Awards</strong>
+          <span>Festival Internacional • Online • Organização: Vale Produções</span>
+        </div>
       </div>
-    </a>
+      <nav class="nav">
+        <a href="../index.html">Início</a>
+        <a href="./ranking.html">Ranking</a>
+        <a href="./jurados.html">Área de jurados</a>
+      </nav>
+    </header>
 
-    <nav class="topnav">
-      <a href="../index.html">Início</a>
-      <a href="./ranking.html">Ranking</a>
-      <a href="./candidato.html">Área do candidato</a>
-      <a class="pill" href="./jurados.html">Área de jurados</a>
-    </nav>
-  </header>
-
-  <main class="container">
-    <section class="hero-card">
-      <h1>Inscrição Oficial</h1>
-      <p class="muted">
-        Participe do <strong>Vale Music Awards</strong>. Envie sua foto e seu áudio (MP3).
-        Ao final, você receberá um <strong>código</strong> para acompanhar sua avaliação.
+    <section class="hero">
+      <div class="pill">🎙️ 100% online • Inscrição oficial via Google Forms</div>
+      <h1>Inscrição <span>Oficial</span></h1>
+      <p class="lead">
+        Para evitar preenchimento duplicado e garantir envio correto de <strong>foto</strong> e <strong>áudio</strong>,
+        a inscrição é finalizada pelo nosso formulário oficial. Leia o regulamento abaixo, confirme que aceita e clique em
+        <strong>INSCREVER-SE AGORA</strong>.
       </p>
-    </section>
 
-    <section class="glass-card">
-      <form id="formInscricao" class="form-grid" autocomplete="off" novalidate>
-        <div class="field">
-          <label for="nome">Nome completo</label>
-          <input id="nome" name="nome" type="text" required maxlength="80" />
+      <div class="ctaCard">
+        <div class="ctaLeft">
+          <div class="noteBox">
+            <strong>Importante:</strong> ao clicar no botão, você será redirecionado ao formulário oficial para:
+            <ul>
+              <li>Anexar <strong>FOTO</strong> (apenas rosto do candidato)</li>
+              <li>Anexar <strong>ÁUDIO MP3</strong> (até <strong>3 minutos</strong>)</li>
+              <li>Concluir sua participação de forma segura</li>
+            </ul>
+          </div>
         </div>
 
-        <div class="field">
-          <label for="artistico">Nome artístico</label>
-          <input id="artistico" name="artistico" type="text" required maxlength="60" />
-        </div>
+        <div class="ctaRight">
+          <div class="checkRow">
+            <input type="checkbox" id="agree" />
+            <label for="agree">
+              Eu li e aceito o <strong>Regulamento Oficial</strong>, os critérios de avaliação e os limites técnicos.
+            </label>
+          </div>
 
-        <div class="field">
-          <label for="whats">WhatsApp</label>
-          <input id="whats" name="whats" type="tel" required maxlength="20" placeholder="(11) 99999-9999" />
-        </div>
-
-        <div class="field">
-          <label for="email">E-mail</label>
-          <input id="email" name="email" type="email" required maxlength="120" />
-        </div>
-
-        <div class="field">
-          <label for="cidade">Cidade / Estado</label>
-          <input id="cidade" name="cidade" type="text" required maxlength="60" />
-        </div>
-
-        <div class="field">
-          <label for="genero">Gênero musical</label>
-          <select id="genero" name="genero" required>
-            <option value="">Selecione</option>
-            <option>Gospel</option>
-            <option>Pop</option>
-            <option>Sertanejo</option>
-            <option>Pagode</option>
-            <option>MPB</option>
-            <option>Rap/Trap</option>
-            <option>Rock</option>
-            <option>Outro</option>
-          </select>
-        </div>
-
-        <div class="field span-2">
-          <label for="bio">Mini biografia (opcional)</label>
-          <textarea id="bio" name="bio" maxlength="500" rows="4"></textarea>
-        </div>
-
-        <div class="field span-2">
-          <label for="foto">Foto (máx. 1,5MB • apenas rosto do candidato)</label>
-          <input id="foto" name="foto" type="file" accept="image/*" required />
-          <small class="help">
-            Envie uma foto nítida do seu rosto. Imagens inadequadas, imorais, de terceiros ou fora do padrão podem eliminar o candidato.
-          </small>
-        </div>
-
-        <div class="field span-2">
-          <label for="audio">Áudio MP3 (até 3 minutos)</label>
-          <input id="audio" name="audio" type="file" accept="audio/mpeg,audio/mp3" required />
-          <small class="help">
-            Envie um MP3 com até 3 minutos. Conteúdos ofensivos, discriminatórios, vulgares ou que violem a dignidade humana serão eliminados.
-          </small>
-        </div>
-
-        <div class="field span-2">
-          <label class="checkline">
-            <input id="aceite" type="checkbox" required />
-            <span>Li e aceito o <strong>Regulamento Oficial</strong> e autorizo o uso do meu material para fins de avaliação no festival.</span>
-          </label>
-        </div>
-
-        <div class="field span-2">
-          <button id="btnEnviar" class="btn btn-gold" type="submit">
-            Concluir inscrição
+          <button id="goForms" class="bigBtn" disabled>
+            INSCREVER-SE AGORA (ABRIR FORMULÁRIO)
           </button>
+
+          <div class="noteBox">
+            Limites recomendados:
+            <br>• Foto: até <strong>1,5MB</strong> (rosto nítido)
+            <br>• Áudio: até <strong>3 minutos</strong> (MP3)
+          </div>
         </div>
+      </div>
 
-        <div class="field span-2">
-          <div id="statusBox" class="statusbox" aria-live="polite"></div>
+      <h2 class="regTitle">Regulamento Oficial — Vale Music Awards</h2>
+      <div class="regBox">
+        <div class="regText" id="regText">
+          <h3>1. Da Organização e Objetivo</h3>
+          <p>
+            O <strong>Vale Music Awards</strong> é um festival internacional de talentos musicais, organizado pela
+            <strong>Vale Produções</strong>, com o objetivo de descobrir, avaliar e desenvolver novos artistas.
+            O evento ocorre em formato <strong>100% online</strong>, por meio de envio de material artístico (foto e áudio)
+            e avaliação por jurados profissionais.
+          </p>
+
+          <h3>2. Da Participação</h3>
+          <ul>
+            <li>Participação <strong>gratuita</strong> na edição vigente.</li>
+            <li>São permitidas músicas <strong>autorais</strong> ou <strong>covers</strong>.</li>
+            <li>Menores de 18 anos: participação apenas mediante autorização formal de responsável legal (quando aplicável).</li>
+            <li>Cada candidato poderá participar com <strong>1 envio</strong> por edição (salvo decisão da organização).</li>
+          </ul>
+
+          <h3>3. Conteúdo Proibido (Eliminação)</h3>
+          <p>Serão eliminadas inscrições que contenham, direta ou indiretamente:</p>
+          <ul>
+            <li>Letras, mensagens ou conteúdos que sejam <strong>impróprios</strong>, <strong>vulgares</strong>, ofensivos, discriminatórios, que promovam violência, ódio ou que violem a dignidade humana.</li>
+            <li>Conteúdo que incentive crime, abuso, assédio, humilhação ou que exponha terceiros sem autorização.</li>
+            <li>Plágio intencional, fraude de identidade ou envio de material que não pertença ao candidato (sem autorização).</li>
+          </ul>
+
+          <h3>4. Regras da Foto (Obrigatória)</h3>
+          <ul>
+            <li>A foto deve ser <strong>do rosto do candidato</strong>, nítida e atual.</li>
+            <li>Não serão aceitas fotos imorais/inadequadas, de terceiros, com nudez, violência ou qualquer conteúdo impróprio.</li>
+            <li>Limite recomendado: <strong>até 1,5MB</strong>.</li>
+          </ul>
+
+          <h3>5. Regras do Áudio (Obrigatório)</h3>
+          <ul>
+            <li>O áudio deve ser enviado em <strong>MP3</strong>.</li>
+            <li>Duração máxima recomendada: <strong>até 3 minutos</strong>.</li>
+            <li>O candidato declara que possui autorização para utilizar a obra enviada (autoral ou cover).</li>
+          </ul>
+
+          <h3>6. Critérios de Avaliação (0 a 100)</h3>
+          <p>
+            Cada jurado atribui pontuações de <strong>0 a 10</strong> por critério técnico (10 critérios),
+            e o sistema soma automaticamente para gerar uma nota final de <strong>0 a 100</strong>:
+          </p>
+          <ul>
+            <li>Afinação</li>
+            <li>Ritmo & Tempo</li>
+            <li>Interpretação</li>
+            <li>Pronúncia & Dicção</li>
+            <li>Timbre</li>
+            <li>Controle Vocal</li>
+            <li>Dinâmica</li>
+            <li>Extensão</li>
+            <li>Musicalidade</li>
+            <li>Potencial Artístico</li>
+          </ul>
+
+          <h3>7. Jurados</h3>
+          <p>
+            A edição atual contará com <strong>5 (cinco) jurados</strong>, profissionais da música, convidados pela organização.
+            As avaliações são registradas individualmente e a nota final é calculada automaticamente pelo sistema.
+          </p>
+
+          <h3>8. Resultado e Premiação</h3>
+          <p>
+            O vencedor receberá: <strong>gravação profissional gratuita</strong>, <strong>gestão de carreira</strong> e
+            <strong>acesso aos aplicativos da Vale Produções</strong>, sem custo, conforme condições do evento.
+            O contrato de gravação e termos detalhados serão fornecidos ao final do festival.
+          </p>
+
+          <h3>9. Conduta e Penalidades</h3>
+          <p>
+            O descumprimento de qualquer regra, tentativa de fraude, envio de material impróprio ou conduta que comprometa a integridade
+            do festival poderá resultar em <strong>desclassificação</strong> imediata.
+          </p>
+
+          <h3>10. Disposições Gerais</h3>
+          <p>
+            A organização pode ajustar cronograma e etapas por necessidade técnica/operacional, garantindo transparência aos participantes.
+            Ao participar, o candidato concorda com este regulamento e com o uso do material enviado para fins de avaliação e divulgação do festival
+            (sem prejuízo de direitos autorais).
+          </p>
+
+          <p style="margin-top:14px; color:#bdbdca;">
+            Organização: <strong>Vale Produções</strong> • Evento: <strong>Vale Music Awards</strong>
+          </p>
         </div>
-      </form>
-    </section>
-
-    <section class="glass-card">
-      <h2>Regulamento Oficial — Vale Music Awards</h2>
-      <p class="muted">Festival Internacional de Talentos • Edição online • Organização: Vale Produções</p>
-
-      <div class="regulamento">
-        <p><strong>1. Modalidade.</strong> Festival 100% online. O candidato participa enviando foto e áudio (MP3) por meio do formulário do site.</p>
-        <p><strong>2. Participação.</strong> Permitidas músicas autorais ou covers. Para menores, é necessária autorização de responsável legal.</p>
-        <p><strong>3. Conteúdo proibido (eliminação).</strong> Serão eliminados candidatos com material que contenha: linguagem ou conteúdo vulgar, ofensivo, discriminatório, incitação à violência, apologia a crimes, ou qualquer letra/mensagem que denigra ou viole a dignidade humana.</p>
-        <p><strong>4. Foto.</strong> Deve ser apenas do rosto do candidato, nítida, sem nudez, sem conteúdo imoral, sem terceiros, sem marcas indevidas. A organização pode solicitar nova foto ou desclassificar em caso de descumprimento.</p>
-        <p><strong>5. Áudio.</strong> Deve ser MP3, com duração máxima de 3 minutos. O material deve representar a voz real do candidato, sem enganos deliberados. A organização pode recusar arquivos corrompidos ou fora do padrão.</p>
-        <p><strong>6. Avaliação.</strong> As avaliações serão feitas por <strong>5 jurados</strong> (profissionais da música). Critérios: afinação, ritmo/tempo, interpretação, pronúncia e dicção, timbre/qualidade vocal, controle vocal (apoio/respiração), dinâmica, extensão, musicalidade e potencial artístico. Cada critério recebe nota de 0 a 10. A soma gera nota final automática de 0 a 100.</p>
-        <p><strong>7. Ranking.</strong> O ranking é calculado pela média das notas dos jurados. A ordem pode variar conforme novas avaliações forem registradas.</p>
-        <p><strong>8. Trava de avaliação.</strong> Após o jurado enviar as notas de um candidato, a avaliação fica registrada e não pode ser alterada.</p>
-        <p><strong>9. Prêmio.</strong> O vencedor recebe gravação gratuita, gestão de carreira e acesso aos aplicativos da Vale Produções, conforme contrato a ser apresentado ao final do evento.</p>
-        <p><strong>10. Disposições finais.</strong> A organização pode desclassificar candidatos que violem regras, tentem fraudar o processo ou descumpram critérios técnicos. Ao participar, o candidato aceita este regulamento.</p>
       </div>
     </section>
-  </main>
+  </div>
 
-  <footer class="footer">
-    <div>© <span id="year"></span> Vale Produções • Todos os direitos reservados</div>
-  </footer>
+  <script src="../assets/js/vma-config.js"></script>
+  <script>
+    (function(){
+      const cfg = window.VMA_CONFIG;
+      const agree = document.getElementById("agree");
+      const btn = document.getElementById("goForms");
 
-  <!-- ✅ IMPORTANTE: scripts como module -->
-  <script type="module">
-    import "../assets/js/inscricao.js";
-    document.getElementById("year").textContent = new Date().getFullYear();
+      btn.addEventListener("click", () => {
+        if(!agree.checked) return;
+        window.open(cfg.FORMS_URL, "_blank");
+      });
+
+      agree.addEventListener("change", () => {
+        btn.disabled = !agree.checked;
+        btn.style.opacity = agree.checked ? "1" : ".6";
+      });
+    })();
   </script>
 </body>
 </html>
