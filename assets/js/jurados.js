@@ -4,7 +4,8 @@
 // - Envia avaliação travada via Apps Script (?action=rate)
 // - Soma automática 0..100 (10 critérios de 0..10)
 // - Travamento no front após enviar + bloqueio no backend (ALREADY_RATED)
-// - FIX DEFINITIVO: Foto via thumbnail do Drive + Áudio via iframe /preview (Drive Player)
+// - FIX: Foto via thumbnail do Drive + Áudio via iframe /preview (Drive Player)
+// - UX: Foto pequena, proporcional e elegante
 
 (() => {
   "use strict";
@@ -147,14 +148,13 @@
     return "";
   }
 
-  // ✅ Foto estável no site: thumbnail (hotlink robusto)
-  function drivePhotoThumbUrl(fileId, size = 1000) {
+  // Foto estável
+  function drivePhotoThumbUrl(fileId, size = 500) {
     if (!fileId) return "";
-    // thumbnail geralmente funciona bem em <img>
     return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w${size}`;
   }
 
-  // ✅ Áudio definitivo sem 0:00: player oficial do Drive
+  // Áudio definitivo
   function drivePreviewUrl(fileId) {
     if (!fileId) return "";
     return `https://drive.google.com/file/d/${encodeURIComponent(fileId)}/preview`;
@@ -202,7 +202,7 @@
       const photoId = extractDriveFileId(c.photoUrl);
       const audioId = extractDriveFileId(c.audioUrl);
 
-      const photoSrc = photoId ? drivePhotoThumbUrl(photoId, 1200) : "";
+      const photoSrc = photoId ? drivePhotoThumbUrl(photoId, 700) : "";
       const audioPreview = audioId ? drivePreviewUrl(audioId) : "";
 
       const locked = jurorId && id ? isLocked(jurorId, id) : false;
@@ -224,52 +224,73 @@
 
       return `
         <section class="candidate-card" data-candidate="${id}">
-          <div class="cand-top">
-            <div class="cand-photo">
+          <div class="cand-top" style="display:flex; gap:14px; align-items:flex-start;">
+            
+            <div class="cand-photo" style="
+              width:86px; height:86px; border-radius:18px; overflow:hidden;
+              background: rgba(255,255,255,0.06);
+              border: 1px solid rgba(255,255,255,0.10);
+              box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+              flex: 0 0 auto;
+            ">
               ${
                 photoSrc
                   ? `<img src="${safeText(photoSrc)}" alt="Foto de ${name}" loading="lazy"
+                       style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;"
                        onerror="this.style.opacity='0.25'; this.alt='Foto indisponível';">`
-                  : `<div class="photo-fallback">Sem foto</div>`
+                  : `<div class="photo-fallback" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:0.7;">Sem foto</div>`
               }
             </div>
 
-            <div class="cand-meta">
-              <div class="cand-name">${name}</div>
-              <div class="cand-tags">
+            <div class="cand-meta" style="flex:1; min-width:0;">
+              <div class="cand-name" style="font-weight:700; font-size:18px; line-height:1.2;">
+                ${name}
+              </div>
+
+              <div class="cand-tags" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
                 <span class="tag">ID: ${id}</span>
                 ${genre ? `<span class="tag">${genre}</span>` : ""}
                 ${city ? `<span class="tag">${city}</span>` : ""}
               </div>
 
-              <div class="cand-audio">
+              <div class="cand-audio" style="margin-top:12px;">
                 ${
                   audioPreview
                     ? `
-                      <div class="audio-embed">
+                      <div class="audio-embed" style="
+                        width:100%;
+                        border-radius:16px;
+                        overflow:hidden;
+                        border:1px solid rgba(255,255,255,0.10);
+                        background: rgba(0,0,0,0.35);
+                        box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+                      ">
                         <iframe
                           src="${safeText(audioPreview)}"
                           allow="autoplay"
                           loading="lazy"
-                          title="Player de áudio - ${name}">
+                          title="Player de áudio - ${name}"
+                          style="width:100%;height:110px;border:0;display:block;">
                         </iframe>
                       </div>
-                      <a class="audio-open" href="${safeText(audioPreview)}" target="_blank" rel="noopener">
+                      <a class="audio-open" href="${safeText(audioPreview)}" target="_blank" rel="noopener"
+                        style="display:inline-block;margin-top:10px;opacity:0.9;text-decoration:none;">
                         Abrir áudio
                       </a>
                     `
-                    : `<div class="audio-fallback">Sem áudio</div>`
+                    : `<div class="audio-fallback" style="opacity:0.75;">Sem áudio</div>`
                 }
               </div>
             </div>
 
-            <div class="cand-total">
+            <div class="cand-total" style="flex:0 0 auto;">
               <div class="total-box">
                 <div class="total-label">TOTAL</div>
                 <div class="total-num"><span data-total>0</span></div>
                 <div class="total-sub">/ 100</div>
               </div>
             </div>
+
           </div>
 
           <div class="cand-criteria">
