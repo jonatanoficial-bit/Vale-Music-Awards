@@ -2,8 +2,8 @@
 export const VMA_CONFIG = {
   festivalName: "Vale Music Awards",
 
-  // Sua URL do WebApp (a que você mandou)
-  apiBaseUrl: "https://script.google.com/macros/s/AKfycbzhRsZy_tdu6xKX71sfrNOGFC8oEXyG4SpYi8xa5D5bj-q7ItVvRpvCrLrT0r11BoUh/exec",
+  // ✅ URL correta do seu WebApp (Apps Script)
+  apiBaseUrl: "https://script.google.com/macros/s/AKfycbxRvwp0aOtgENIj6Hm0H_zb0IsDBzW-QM6BB7_eNKDzp5tSFVMgucItzidnKofVfKHw/exec",
 
   // Mesma SECRET do Code.gs
   secret: "VMA-2026-VALE-SEGREDO-9137",
@@ -22,7 +22,7 @@ export const VMA_CONFIG = {
     { key: "potencial", label: "Potencial Artístico" }
   ],
 
-  // Jurados (você pode editar depois)
+  // Jurados (edite depois)
   jurors: [
     { id: "J1", name: "Jurado 1", pin: "1111" },
     { id: "J2", name: "Jurado 2", pin: "2222" },
