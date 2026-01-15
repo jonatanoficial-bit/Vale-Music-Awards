@@ -1,378 +1,338 @@
-import { auth, db } from "./firebase.js";
+// assets/js/jurados.js
+import { VMA_CONFIG } from "./vma-config.js";
+import { VMA_API } from "./vma-api.js";
 
-import {
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+const jurorSelect = document.getElementById("jurorSelect");
+const jurorPin = document.getElementById("jurorPin");
+const btnLogin = document.getElementById("btnLogin");
+const btnLogout = document.getElementById("btnLogout");
+const loginStatus = document.getElementById("loginStatus");
 
-import {
-  collection,
-  getDocs,
-  doc,
-  getDoc,
-  runTransaction,
-  serverTimestamp,
-  query,
-  orderBy,
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+const candList = document.getElementById("candList");
+const viewer = document.getElementById("viewer");
 
-/**
- * Jurados • Vale Music Awards
- * - Login via Firebase Auth
- * - Lista candidatos (Firestore)
- * - Avaliação técnica 10 critérios (0-10)
- * - Soma automática 0-100
- * - Travar após finalizar
- * - Atualiza média do candidato no ranking
- */
+let state = {
+  juror: null,
+  candidates: [],
+  selected: null
+};
 
-function clamp10(v) {
-  const n = Number(v);
-  if (Number.isNaN(n)) return 0;
-  return Math.max(0, Math.min(10, n));
+function esc(s) {
+  return String(s || "").replace(/[&<>"']/g, (m) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
 }
 
-function calcTotal100(scores) {
-  // 10 critérios x 0-10 => 0-100
-  return window.VMA.CRITERIA.reduce((sum, c) => sum + clamp10(scores[c.key]), 0);
+function ratedKey(jurorId) {
+  return `vma_rated_${jurorId}`;
+}
+
+function getRatedSet(jurorId) {
+  const raw = localStorage.getItem(ratedKey(jurorId)) || "[]";
+  try {
+    const arr = JSON.parse(raw);
+    return new Set(Array.isArray(arr) ? arr : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function addRated(jurorId, candidateId) {
+  const set = getRatedSet(jurorId);
+  set.add(candidateId);
+  localStorage.setItem(ratedKey(jurorId), JSON.stringify([...set]));
+}
+
+function isRated(jurorId, candidateId) {
+  const set = getRatedSet(jurorId);
+  return set.has(candidateId);
+}
+
+function renderJurors() {
+  jurorSelect.innerHTML = VMA_CONFIG.jurors
+    .map(j => `<option value="${esc(j.id)}">${esc(j.name)}</option>`)
+    .join("");
+}
+
+function setLoggedInUI(isLogged) {
+  btnLogin.style.display = isLogged ? "none" : "inline-flex";
+  btnLogout.style.display = isLogged ? "inline-flex" : "none";
+  jurorSelect.disabled = isLogged;
+  jurorPin.disabled = isLogged;
+}
+
+function getSelectedJuror() {
+  const id = jurorSelect.value;
+  return VMA_CONFIG.jurors.find(j => j.id === id) || null;
+}
+
+function saveSession(juror) {
+  sessionStorage.setItem("vma_juror", JSON.stringify({ id: juror.id, name: juror.name }));
+}
+
+function loadSession() {
+  const raw = sessionStorage.getItem("vma_juror");
+  if (!raw) return null;
+  try {
+    const obj = JSON.parse(raw);
+    if (!obj?.id) return null;
+    return VMA_CONFIG.jurors.find(j => j.id === obj.id) || null;
+  } catch {
+    return null;
+  }
+}
+
+function clearSession() {
+  sessionStorage.removeItem("vma_juror");
+}
+
+function candidateCard(c) {
+  const name = c.artisticName || c.name || c.candidateId;
+  const photo = c.photoUrl || "../assets/img/vale-producao-logo.png";
+  const avg = Number(c.avgScore100 || 0).toFixed(2);
+  const count = Number(c.scoresCount || 0);
+
+  const rated = state.juror && isRated(state.juror.id, c.candidateId);
+  const badge = rated ? `<span class="pill">✅ Avaliado</span>` : `<span class="pill">Pendente</span>`;
+
+  const active = state.selected && state.selected.candidateId === c.candidateId ? "active" : "";
+  return `
+    <div class="cand ${active}" data-id="${esc(c.candidateId)}">
+      <img src="${esc(photo)}" alt="${esc(name)}" loading="lazy" />
+      <div>
+        <div class="name">${esc(name)}</div>
+        <div class="muted" style="font-size:.9rem">${esc(c.candidateId)} • média ${esc(avg)} • ${count} nota(s)</div>
+      </div>
+      <div class="right">${badge}</div>
+    </div>
+  `;
+}
+
+function renderCandidates() {
+  if (!state.juror) {
+    candList.innerHTML = `<div class="lock">Faça login para carregar os candidatos.</div>`;
+    return;
+  }
+  if (!state.candidates.length) {
+    candList.innerHTML = `<div class="lock">Ainda não há candidatos enviados pelo Forms.</div>`;
+    return;
+  }
+  candList.innerHTML = state.candidates.map(candidateCard).join("");
+
+  candList.querySelectorAll(".cand").forEach(el => {
+    el.addEventListener("click", () => {
+      const id = el.getAttribute("data-id");
+      const c = state.candidates.find(x => x.candidateId === id);
+      if (!c) return;
+      state.selected = c;
+      renderCandidates();
+      renderViewer();
+    });
+  });
+}
+
+function renderViewer() {
+  if (!state.juror) {
+    viewer.innerHTML = `<div class="lock">Faça login para avaliar.</div>`;
+    return;
+  }
+  if (!state.selected) {
+    viewer.innerHTML = `<div class="lock">Selecione um candidato para começar.</div>`;
+    return;
+  }
+
+  const c = state.selected;
+  const name = c.artisticName || c.name || c.candidateId;
+  const photo = c.photoUrl || "../assets/img/vale-producao-logo.png";
+  const audio = c.audioUrl || "";
+
+  const locked = isRated(state.juror.id, c.candidateId);
+
+  const critRows = VMA_CONFIG.criteria.map((cr, idx) => `
+    <div class="crit">
+      <div>
+        <div style="font-weight:900">${esc(cr.label)}</div>
+        <div class="muted" style="font-size:.9rem">0 a 10</div>
+      </div>
+      <input ${locked ? "disabled" : ""} type="number" min="0" max="10" step="1" value="0" data-idx="${idx}" />
+    </div>
+  `).join("");
+
+  viewer.innerHTML = `
+    <div class="hero">
+      <img src="${esc(photo)}" alt="${esc(name)}" />
+      <div>
+        <div class="title">${esc(name)}</div>
+        <div class="sub">${esc(c.candidateId)} • ${esc(c.city || "")} • ${esc(c.genre || "")}</div>
+      </div>
+      <div style="margin-left:auto" class="pill">Nota final: <strong id="total100" style="margin-left:6px">0</strong>/100</div>
+    </div>
+
+    <div class="panel" style="padding:12px">
+      <div class="muted" style="margin-bottom:10px">Áudio enviado</div>
+      ${audio ? `<audio controls src="${esc(audio)}"></audio>` : `<div class="lock">Sem áudio disponível.</div>`}
+    </div>
+
+    <div class="criteria" id="criteriaBox">
+      ${critRows}
+    </div>
+
+    <div class="sum">
+      <div>
+        <div class="muted">Soma automática (0–100)</div>
+        <strong id="sumText">0</strong>
+      </div>
+      <button class="btn" id="btnSubmit" ${locked ? "disabled" : ""}>Enviar avaliação (travar)</button>
+    </div>
+
+    ${locked ? `<div class="lock">✅ Esta avaliação já foi enviada e está travada neste dispositivo.</div>` : ""}
+    <div class="pill" id="submitStatus">Pronto para avaliar.</div>
+  `;
+
+  const inputs = viewer.querySelectorAll('#criteriaBox input[type="number"]');
+  const sumText = viewer.querySelector("#sumText");
+  const total100 = viewer.querySelector("#total100");
+  const btnSubmit = viewer.querySelector("#btnSubmit");
+  const submitStatus = viewer.querySelector("#submitStatus");
+
+  function calcSum() {
+    let sum = 0;
+    inputs.forEach(inp => {
+      let n = Number(inp.value);
+      if (!Number.isFinite(n)) n = 0;
+      if (n < 0) n = 0;
+      if (n > 10) n = 10;
+      inp.value = String(Math.round(n));
+      sum += Number(inp.value);
+    });
+    sumText.textContent = String(sum);
+    total100.textContent = String(sum);
+    return sum;
+  }
+
+  inputs.forEach(inp => inp.addEventListener("input", calcSum));
+  calcSum();
+
+  if (btnSubmit) {
+    btnSubmit.addEventListener("click", async () => {
+      try {
+        const sum = calcSum();
+        const scores = Array.from(inputs).map(i => Number(i.value));
+
+        btnSubmit.disabled = true;
+        submitStatus.textContent = "Enviando…";
+
+        const res = await VMA_API.rate({
+          jurorId: state.juror.id,
+          candidateId: c.candidateId,
+          scores
+        });
+
+        // trava localmente + UI
+        addRated(state.juror.id, c.candidateId);
+
+        submitStatus.textContent = `✅ Enviado! Nota final: ${res.total100}/100 (travado)`;
+
+        // desabilita inputs
+        inputs.forEach(i => i.disabled = true);
+
+        // recarrega candidatos pra mostrar badge
+        await loadCandidates();
+        renderCandidates();
+
+      } catch (e) {
+        submitStatus.textContent = `Erro: ${e.message}`;
+        // Se já avaliou em outro dispositivo, o servidor retorna ALREADY_RATED
+        // mantemos travado local apenas se você quiser:
+        if (String(e.message || "").includes("ALREADY_RATED")) {
+          addRated(state.juror.id, c.candidateId);
+          renderCandidates();
+          renderViewer();
+        } else {
+          btnSubmit.disabled = false;
+        }
+      }
+    });
+  }
 }
 
 async function loadCandidates() {
-  // Ordena por data (últimos primeiro). Ranking é calculado em outro lugar.
-  const q = query(collection(db, "candidates"), orderBy("createdAt", "desc"));
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => d.data());
+  const data = await VMA_API.candidates();
+  state.candidates = data.candidates || [];
 }
 
-async function getLockedScore(candidateId, judgeUid) {
-  const scoreId = `${candidateId}__${judgeUid}`;
-  const ref = doc(db, "scores", scoreId);
-  const snap = await getDoc(ref);
-  return snap.exists() ? snap.data() : null;
-}
-
-function renderLogin(mount) {
-  mount.innerHTML = `
-    <div style="display:grid;gap:10px">
-      <b>Login de Jurado</b>
-      <p style="color:var(--muted);margin:0">
-        Acesso restrito do Vale Music Awards.
-      </p>
-
-      <input id="email" type="email" placeholder="email"
-        style="padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.30);color:var(--text)" />
-
-      <input id="pass" type="password" placeholder="senha"
-        style="padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.30);color:var(--text)" />
-
-      <button class="btn btn--gold" id="btnLogin">Entrar</button>
-
-      <div style="color:var(--muted2);font-size:12px">
-        Dica: crie 5 usuários de jurado em Firebase Authentication (Email/Senha).
-      </div>
-    </div>
-  `;
-
-  mount.querySelector("#btnLogin").onclick = async () => {
-    const email = String(mount.querySelector("#email").value || "").trim();
-    const pass = String(mount.querySelector("#pass").value || "").trim();
-    if (!email || !pass) return alert("Informe email e senha.");
-
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-    } catch (e) {
-      alert("Falha no login: " + (e?.message || e));
-    }
-  };
-}
-
-function scoreFormHTML(candidate) {
-  const crit = window.VMA.CRITERIA.map(
-    (c) => `
-    <div class="tile" style="padding:12px">
-      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
-        <b>${c.label}</b>
-        <span style="color:var(--muted2);font-size:12px">0 a 10</span>
-      </div>
-      <input data-k="${c.key}" type="range" min="0" max="10" step="1" value="8"
-        style="width:100%;margin-top:10px">
-      <div style="display:flex;justify-content:space-between;color:var(--muted2);font-size:12px;margin-top:6px">
-        <span>0</span><span>10</span>
-      </div>
-    </div>
-  `
-  ).join("");
-
-  const photoUrl = candidate?.photo?.url || "";
-  const audioUrl = candidate?.audio?.url || "";
-
-  return `
-    <div class="card" style="padding:16px;margin-top:12px">
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-        <img src="${photoUrl}" alt="Foto do candidato"
-          style="width:64px;height:64px;border-radius:18px;object-fit:cover;border:1px solid rgba(255,255,255,.10)"/>
-        <div style="flex:1">
-          <div style="font-weight:950;font-size:18px">${candidate.nomeArtistico || candidate.nome}</div>
-          <div style="color:var(--muted)">${candidate.id} • ${candidate.genero} • ${candidate.cidade}</div>
-        </div>
-      </div>
-
-      <div style="margin-top:12px">
-        <b>Áudio</b>
-        <div style="margin-top:8px">
-          <audio controls style="width:100%">
-            <source src="${audioUrl}" type="audio/mpeg">
-          </audio>
-        </div>
-      </div>
-
-      <div style="margin-top:14px">
-        <b>Avaliação técnica</b>
-        <div style="color:var(--muted);margin-top:6px">
-          Preencha os critérios (0–10). A nota final (0–100) é calculada automaticamente.
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px" class="critgrid">
-          ${crit}
-        </div>
-
-        <div class="card" style="padding:14px;margin-top:12px;border:1px solid rgba(245,211,106,.35)">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-            <div>
-              <div style="font-weight:900">Nota final</div>
-              <div style="color:var(--muted2);font-size:12px">0 a 100 • soma automática</div>
-            </div>
-            <div style="font-weight:950;font-size:34px;background:linear-gradient(90deg,var(--gold1),var(--gold2));-webkit-background-clip:text;color:transparent" id="total100">80</div>
-          </div>
-        </div>
-
-        <textarea id="note" rows="3" placeholder="Feedback (opcional)"
-          style="margin-top:10px;width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.30);color:var(--text)"></textarea>
-
-        <button class="btn btn--gold btn--block" id="finalize" style="margin-top:12px">
-          Finalizar avaliação (travada)
-        </button>
-
-        <div style="color:var(--muted2);font-size:12px;margin-top:10px">
-          Ao finalizar, esta avaliação fica <b>bloqueada</b> e não poderá ser alterada.
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function wireTotalCalc(root) {
-  const totalEl = root.querySelector("#total100");
-  const sliders = [...root.querySelectorAll('input[type="range"][data-k]')];
-
-  function recompute() {
-    const scores = {};
-    for (const s of sliders) scores[s.dataset.k] = Number(s.value);
-    totalEl.textContent = String(calcTotal100(scores));
+async function onLogin() {
+  const juror = getSelectedJuror();
+  const pin = String(jurorPin.value || "").trim();
+  if (!juror) {
+    loginStatus.textContent = "Selecione um jurado.";
+    return;
+  }
+  if (pin !== juror.pin) {
+    loginStatus.textContent = "PIN incorreto.";
+    return;
   }
 
-  sliders.forEach((s) => s.addEventListener("input", recompute));
-  recompute();
-}
+  state.juror = juror;
+  saveSession(juror);
+  setLoggedInUI(true);
+  loginStatus.textContent = `✅ Logado como ${juror.name}. Carregando candidatos…`;
 
-async function finalizeScore(candidateId, judgeUid, scores, note) {
-  const scoreId = `${candidateId}__${judgeUid}`;
-  const scoreRef = doc(db, "scores", scoreId);
-  const candRef = doc(db, "candidates", candidateId);
-
-  const total100 = calcTotal100(scores);
-
-  await runTransaction(db, async (tx) => {
-    const existing = await tx.get(scoreRef);
-    if (existing.exists()) {
-      throw new Error("Esta avaliação já foi finalizada e está travada.");
-    }
-
-    // Salva score travado
-    tx.set(scoreRef, {
-      candidateId,
-      judgeUid,
-      scores,
-      total100,
-      note: String(note || "").trim(),
-      locked: true,
-      createdAt: serverTimestamp(),
-    });
-
-    // Atualiza média do candidato
-    const candSnap = await tx.get(candRef);
-    const cand = candSnap.exists() ? candSnap.data() : null;
-
-    const oldCount = Number(cand?.scoresCount || 0);
-    const oldAvg = Number(cand?.avgScore100 || 0);
-
-    const newCount = oldCount + 1;
-    const newAvg = ((oldAvg * oldCount) + total100) / newCount;
-
-    tx.set(
-      candRef,
-      {
-        avgScore100: newAvg,
-        scoresCount: newCount,
-      },
-      { merge: true }
-    );
-  });
-
-  return total100;
-}
-
-function renderLockedView(candidate, locked) {
-  const photoUrl = candidate?.photo?.url || "";
-  const audioUrl = candidate?.audio?.url || "";
-
-  return `
-    <div class="card" style="padding:16px;margin-top:12px">
-      <b>Avaliação finalizada (travada)</b>
-      <div style="color:var(--muted);margin-top:6px">
-        Você já finalizou esta avaliação e não pode editar.
-      </div>
-
-      <div style="display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap">
-        <img src="${photoUrl}" alt="Foto do candidato"
-          style="width:64px;height:64px;border-radius:18px;object-fit:cover;border:1px solid rgba(255,255,255,.10)"/>
-        <div style="flex:1">
-          <div style="font-weight:950;font-size:18px">${candidate.nomeArtistico || candidate.nome}</div>
-          <div style="color:var(--muted)">${candidate.id} • ${candidate.genero} • ${candidate.cidade}</div>
-        </div>
-        <div style="font-weight:950;font-size:34px;background:linear-gradient(90deg,var(--gold1),var(--gold2));-webkit-background-clip:text;color:transparent">
-          ${Number(locked.total100 || 0)}
-        </div>
-      </div>
-
-      <div style="margin-top:12px">
-        <b>Áudio</b>
-        <div style="margin-top:8px">
-          <audio controls style="width:100%">
-            <source src="${audioUrl}" type="audio/mpeg">
-          </audio>
-        </div>
-      </div>
-
-      <div style="margin-top:12px">
-        <b>Critérios</b>
-        <div style="margin-top:10px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
-          ${window.VMA.CRITERIA.map(
-            (cr) => `
-            <div class="tile" style="padding:12px">
-              <b>${cr.label}</b>
-              <div style="margin-top:6px;color:var(--muted)">
-                Nota: <b>${Number(locked?.scores?.[cr.key] ?? 0)}</b> / 10
-              </div>
-            </div>
-          `
-          ).join("")}
-        </div>
-      </div>
-
-      ${
-        locked.note
-          ? `<div style="margin-top:12px"><b>Feedback</b><div style="color:var(--muted);margin-top:6px">${locked.note}</div></div>`
-          : ""
-      }
-    </div>
-  `;
-}
-
-async function renderPanel(mount, user) {
-  const candidates = await loadCandidates();
-
-  mount.innerHTML = `
-    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
-      <div>
-        <b>Painel de Jurado</b>
-        <div style="color:var(--muted);margin-top:4px">${window.VMA.FESTIVAL_NAME} • avaliações travadas</div>
-      </div>
-      <button class="btn btn--ghost" id="logout">Sair</button>
-    </div>
-
-    <div class="card" style="padding:14px;margin-top:12px">
-      <b>Candidatos</b>
-      <div style="color:var(--muted);margin-top:6px">
-        Selecione um candidato para avaliar. Se já foi avaliado, ficará somente leitura.
-      </div>
-
-      <select id="selCand"
-        style="margin-top:10px;width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.30);color:var(--text)">
-        ${
-          candidates.length
-            ? candidates
-                .map((c) => `<option value="${c.id}">${c.id} • ${c.nomeArtistico || c.nome}</option>`)
-                .join("")
-            : `<option value="" disabled selected>Nenhum candidato inscrito ainda</option>`
-        }
-      </select>
-    </div>
-
-    <div id="candidateArea"></div>
-  `;
-
-  mount.querySelector("#logout").onclick = async () => {
-    await signOut(auth);
-  };
-
-  const sel = mount.querySelector("#selCand");
-  const area = mount.querySelector("#candidateArea");
-
-  async function showCandidate(id) {
-    const cand = candidates.find((c) => c.id === id);
-    if (!cand) {
-      area.innerHTML = "";
-      return;
-    }
-
-    const locked = await getLockedScore(cand.id, user.uid);
-
-    if (locked) {
-      area.innerHTML = renderLockedView(cand, locked);
-      return;
-    }
-
-    // Ainda não avaliado
-    area.innerHTML = scoreFormHTML(cand);
-    wireTotalCalc(area);
-
-    area.querySelector("#finalize").onclick = async () => {
-      const sliders = [...area.querySelectorAll('input[type="range"][data-k]')];
-      const scores = {};
-      for (const s of sliders) scores[s.dataset.k] = Number(s.value);
-      const note = area.querySelector("#note").value || "";
-
-      if (!confirm("Finalizar avaliação? Após confirmar, não será possível alterar.")) return;
-
-      try {
-        const total100 = await finalizeScore(cand.id, user.uid, scores, note);
-        alert(`Avaliação finalizada! Nota final: ${total100}/100`);
-
-        // Recarrega vista travada
-        const lockedNow = await getLockedScore(cand.id, user.uid);
-        area.innerHTML = renderLockedView(cand, lockedNow);
-      } catch (e) {
-        alert(String(e?.message || e));
-      }
-    };
+  try {
+    await loadCandidates();
+    loginStatus.textContent = "Pronto. Selecione um candidato.";
+  } catch (e) {
+    loginStatus.textContent = `Erro ao carregar candidatos: ${e.message}`;
   }
 
-  if (candidates.length) {
-    sel.addEventListener("change", () => showCandidate(sel.value));
-    await showCandidate(sel.value);
+  renderCandidates();
+  renderViewer();
+}
+
+function onLogout() {
+  state.juror = null;
+  state.selected = null;
+  clearSession();
+  setLoggedInUI(false);
+  loginStatus.textContent = "Aguardando login…";
+  jurorPin.value = "";
+  renderCandidates();
+  renderViewer();
+}
+
+function boot() {
+  renderJurors();
+
+  // auto-login
+  const sess = loadSession();
+  if (sess) {
+    state.juror = sess;
+    setLoggedInUI(true);
+    loginStatus.textContent = `✅ Logado como ${sess.name}. Carregando candidatos…`;
+    loadCandidates()
+      .then(() => {
+        loginStatus.textContent = "Pronto. Selecione um candidato.";
+        renderCandidates();
+        renderViewer();
+      })
+      .catch((e) => {
+        loginStatus.textContent = `Erro ao carregar candidatos: ${e.message}`;
+        renderCandidates();
+        renderViewer();
+      });
   } else {
-    area.innerHTML = `<div class="card" style="padding:16px;margin-top:12px">Nenhum candidato cadastrado ainda.</div>`;
+    setLoggedInUI(false);
+    renderCandidates();
+    renderViewer();
   }
+
+  btnLogin.addEventListener("click", onLogin);
+  btnLogout.addEventListener("click", onLogout);
+
+  // Enter para logar
+  jurorPin.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter") onLogin();
+  });
 }
 
-(function () {
-  const mount = document.getElementById("judgeBox");
-  if (!mount) return;
-
-  onAuthStateChanged(auth, (user) => {
-    if (!user) renderLogin(mount);
-    else renderPanel(mount, user);
-  });
-})();
+boot();
