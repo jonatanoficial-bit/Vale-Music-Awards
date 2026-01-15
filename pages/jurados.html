@@ -1,38 +1,136 @@
+<!-- pages/jurados.html -->
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Jurados • Vale Music Awards</title>
-  <meta name="description" content="Área restrita de jurados do Vale Music Awards. Avaliação técnica com critérios e nota automática." />
-  <link rel="stylesheet" href="../assets/css/styles.css"/>
-</head>
-<body>
-  <div class="bgfx" aria-hidden="true"></div>
-  <div id="headerMount"></div>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Jurados — Vale Music Awards</title>
+  <link rel="icon" href="../assets/img/vale-producao-logo.png" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    .wrap{max-width:1180px;margin:0 auto;padding:26px 16px}
+    .grid{display:grid;grid-template-columns:380px 1fr;gap:16px}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
 
-  <main class="page">
-    <section class="section">
-      <div class="container">
-        <div class="section__head">
-          <h1 class="h1">Área de Jurados</h1>
-          <p>
-            Acesso restrito. Aqui você avalia os candidatos do <b>Vale Music Awards</b>.
-            A nota final (0–100) é calculada automaticamente e <b>fica travada</b> após finalizar.
-          </p>
+    .panel{border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.08);backdrop-filter: blur(12px); padding:14px}
+    .panel h2{margin:6px 0 10px}
+    .muted{opacity:.78}
+
+    .login{display:grid;gap:10px}
+    .field{display:grid;gap:6px}
+    .field label{font-weight:700;font-size:.92rem;opacity:.9}
+    .field input, .field select{
+      width:100%; padding:12px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.35); color:#fff; outline:none;
+    }
+    .btn{
+      display:inline-flex;justify-content:center;align-items:center;gap:10px;
+      padding:12px 14px;border-radius:14px;border:1px solid rgba(255,211,105,.22);
+      background:linear-gradient(135deg,rgba(255,211,105,.22),rgba(255,211,105,.08));
+      color:#fff;font-weight:900;cursor:pointer
+    }
+    .btn.secondary{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.06);font-weight:800}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+
+    .cand-list{display:grid;gap:10px;max-height:520px;overflow:auto;padding-right:6px}
+    .cand{display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:center;
+      padding:12px;border-radius:18px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.25);cursor:pointer}
+    .cand:hover{border-color:rgba(255,211,105,.22)}
+    .cand.active{border-color:rgba(255,211,105,.36);background:linear-gradient(135deg,rgba(255,211,105,.10),rgba(0,0,0,.24))}
+    .cand img{width:54px;height:54px;border-radius:16px;object-fit:cover;border:1px solid rgba(255,255,255,.12)}
+    .cand .name{font-weight:900}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.25);font-size:.85rem;opacity:.9}
+    .right{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+
+    .viewer{display:grid;gap:12px}
+    .hero{display:flex;gap:12px;align-items:center}
+    .hero img{width:78px;height:78px;border-radius:22px;object-fit:cover;border:1px solid rgba(255,255,255,.12)}
+    .hero .title{font-size:1.15rem;font-weight:950}
+    .hero .sub{opacity:.78}
+
+    .criteria{display:grid;gap:10px}
+    .crit{display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:center;
+      padding:10px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.25)}
+    .crit input[type="number"]{
+      width:110px; text-align:center; font-weight:900; font-size:1rem;
+      padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.35);color:#fff
+    }
+
+    .sum{display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:12px;border-radius:18px;border:1px solid rgba(255,211,105,.22);
+      background:linear-gradient(135deg,rgba(255,211,105,.14),rgba(0,0,0,.25))}
+    .sum strong{font-size:1.3rem}
+    .lock{padding:12px;border-radius:18px;border:1px dashed rgba(255,255,255,.18);background:rgba(0,0,0,.25)}
+    audio{width:100%}
+  </style>
+</head>
+<body class="vma-body">
+  <header class="vma-header">
+    <div class="vma-header-inner">
+      <a class="vma-brand" href="../index.html">
+        <img class="vma-brand-logo" src="../assets/img/vale-producao-logo.png" alt="Vale Produção" />
+        <div>
+          <div class="vma-brand-title">Vale Music Awards</div>
+          <div class="vma-brand-sub">Festival Internacional • Online</div>
+        </div>
+      </a>
+      <nav class="vma-nav">
+        <a href="../index.html#quem-somos">Quem somos</a>
+        <a href="./inscricao.html">Inscrição</a>
+        <a href="./ranking.html">Ranking</a>
+        <a href="./candidato.html">Área do candidato</a>
+        <a class="active gold" href="./jurados.html">Área de jurados</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid">
+      <section class="panel">
+        <h2>Login do jurado</h2>
+        <div class="muted" style="margin-bottom:10px">Acesso restrito. Após logar, você verá todos os candidatos.</div>
+
+        <div class="login" id="loginBox">
+          <div class="field">
+            <label>Selecione seu nome</label>
+            <select id="jurorSelect"></select>
+          </div>
+          <div class="field">
+            <label>PIN</label>
+            <input id="jurorPin" type="password" inputmode="numeric" placeholder="Ex: 1234" />
+          </div>
+          <div class="right">
+            <button class="btn secondary" id="btnLogout" type="button" style="display:none">Sair</button>
+            <button class="btn" id="btnLogin" type="button">Entrar</button>
+          </div>
+          <div class="pill" id="loginStatus">Aguardando login…</div>
         </div>
 
-        <div class="card" style="padding:18px;max-width:920px;margin-top:16px" id="judgeBox"></div>
-      </div>
-    </section>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:14px 0">
+
+        <h2>Candidatos</h2>
+        <div class="muted" style="margin-bottom:10px">Clique em um candidato para avaliar.</div>
+        <div class="cand-list" id="candList">
+          <div class="lock">Faça login para carregar os candidatos.</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Avaliação</h2>
+        <div class="muted" style="margin-bottom:10px">
+          Preencha 0–10 em cada critério. A nota final (0–100) é calculada automaticamente.
+          Após enviar, a avaliação fica travada.
+        </div>
+
+        <div class="viewer" id="viewer">
+          <div class="lock">Selecione um candidato para começar.</div>
+        </div>
+      </section>
+    </div>
   </main>
 
-  <div id="footerMount"></div>
-
-  <script src="../assets/js/ui.js"></script>
-
-  <script src="../assets/js/vma-config.js"></script>
-  <script type="module" src="../assets/js/firebase.js"></script>
   <script type="module" src="../assets/js/jurados.js"></script>
 </body>
 </html>
