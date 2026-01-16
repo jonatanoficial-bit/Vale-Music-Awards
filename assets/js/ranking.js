@@ -1,180 +1,169 @@
-/* assets/js/ranking.js
- * Ranking — consome Apps Script (?action=ranking)
- * Robusto para chaves diferentes de foto e com fallback caso a imagem falhe.
- */
+// assets/js/ranking.js
+// Vale Music Awards — Ranking (consome Apps Script ?action=ranking)
+// FIX DEFINITIVO: Foto via thumbnail do Drive (igual jurados.js)
 
-(function () {
+(() => {
   "use strict";
 
-  const $ = (sel) => document.querySelector(sel);
+  const CFG = (typeof window !== "undefined" && window.VMA_CONFIG) ? window.VMA_CONFIG : {};
+  const APPS_SCRIPT_URL =
+    CFG.APPS_SCRIPT_URL ||
+    "https://script.google.com/macros/s/AKfycbxRvwp0aOtgENIj6Hm0H_zb0IsDBzW-QM6BB7_eNKDzp5tSFVMgucItzidnKofVfKHw/exec";
 
-  const els = {
-    list: $("#list"),
-    status: $("#status"),
-    btnRefresh: $("#btnRefresh"),
-    lastUpdate: $("#lastUpdate"),
+  const el = {
+    status: null,
+    list: null,
+    btn: null
   };
 
-  function getConfig() {
-    const cfg = (window.VMA_CONFIG || {});
-    const url = String(cfg.APPS_SCRIPT_URL || "").trim();
-    if (!url) throw new Error("Config não carregou: verifique assets/js/vma-config.js no HTML.");
-    return { APPS_SCRIPT_URL: url.replace(/\/$/, "") };
-  }
+  function q(sel){ return document.querySelector(sel); }
 
-  function nowText() {
-    try {
-      return new Date().toLocaleString("pt-BR");
-    } catch {
-      return String(new Date());
+  function setStatus(msg, type="info"){
+    const prefix =
+      type === "ok" ? "✅ " :
+      type === "warn" ? "⚠️ " :
+      type === "err" ? "❌ " : "ℹ️ ";
+
+    if (el.status) {
+      el.status.textContent = prefix + msg;
+      el.status.dataset.type = type;
+    } else {
+      console[type === "err" ? "error" : "log"](prefix + msg);
     }
   }
 
-  function setStatus(html, kind) {
-    // kind: "ok" | "bad" | ""
-    const clsOk = "statusOk";
-    const clsBad = "statusBad";
-    els.status.classList.remove(clsOk, clsBad);
-    if (kind === "ok") els.status.classList.add(clsOk);
-    if (kind === "bad") els.status.classList.add(clsBad);
-
-    els.status.firstElementChild
-      ? (els.status.firstElementChild.innerHTML = html)
-      : (els.status.innerHTML = `<span>${html}</span><span class="mutedSmall" id="lastUpdate"></span>`);
-
-    if (els.lastUpdate) els.lastUpdate.textContent = `Atualizado: ${nowText()}`;
+  function safeText(v){
+    return String(v ?? "").replace(/[<>&"]/g, (c) => ({
+      "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;"
+    }[c]));
   }
 
-  function esc(s) {
-    return String(s ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
+  function buildUrl(params){
+    const u = new URL(APPS_SCRIPT_URL);
+    Object.entries(params).forEach(([k,v]) => u.searchParams.set(k, String(v)));
+    u.searchParams.set("_ts", String(Date.now()));
+    return u.toString();
   }
 
-  function initials(name) {
-    const n = String(name || "").trim();
-    if (!n) return "VA";
-    const parts = n.split(/\s+/).filter(Boolean);
-    const a = (parts[0] || "").slice(0, 1);
-    const b = (parts.length > 1 ? parts[parts.length - 1] : parts[0]).slice(0, 1);
-    return (a + b).toUpperCase();
+  async function fetchJson(url){
+    const res = await fetch(url, { method:"GET", cache:"no-store" });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      throw new Error(`HTTP ${res.status} ${res.statusText} - ${txt.slice(0,180)}`);
+    }
+    return res.json();
   }
 
-  function pickPhotoUrl(item) {
-    // Aceita várias chaves possíveis
-    const candidates = [
-      item.photoUrl,
-      item.photoPublicUrl,
-      item.photo_public_url,
-      item.photo,
-      item.foto,
-      item.fotoUrl,
-      item.fotoPublicUrl,
-    ].map((v) => String(v || "").trim()).filter(Boolean);
+  function extractDriveFileId(text){
+    const s = String(text || "").trim();
+    if (!s) return "";
 
-    if (!candidates.length) return "";
+    // uc?id=FILEID
+    let m = s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
+    if (m && m[1]) return m[1];
 
-    // Preferir links do Drive "uc?"
-    const driveUc = candidates.find((u) => u.includes("drive.google.com/uc?"));
-    return driveUc || candidates[0];
+    // /file/d/FILEID/
+    m = s.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/);
+    if (m && m[1]) return m[1];
+
+    // /d/FILEID
+    m = s.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+    if (m && m[1]) return m[1];
+
+    return "";
   }
 
-  function normalizeScore(n) {
-    const v = Number(n);
-    if (!Number.isFinite(v)) return 0;
-    // Ranking no seu Apps Script já retorna 0..100, mas garantimos
-    return Math.max(0, Math.min(100, v));
+  function drivePhotoThumbUrl(fileId, size=400){
+    if (!fileId) return "";
+    return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w${size}`;
   }
 
-  function renderRanking(list) {
-    if (!Array.isArray(list) || !list.length) {
-      els.list.innerHTML = "";
-      setStatus("Nenhum candidato no ranking ainda.", "");
+  function render(list, updatedAt){
+    if (!el.list) return;
+
+    if (!Array.isArray(list) || list.length === 0) {
+      el.list.innerHTML = "";
+      setStatus("Ainda não há candidatos no ranking. (Envie inscrições e aguarde.)", "warn");
       return;
     }
 
-    const html = list.map((c) => {
-      const pos = Number(c.position || 0) || 0;
-      const id = esc(c.candidateId || "");
-      const name = esc(c.artisticName || c.name || "");
-      const score = normalizeScore(c.avgScore100);
-      const scoreText = score.toFixed(2);
-      const count = Number(c.scoresCount || 0) || 0;
+    const html = list.map(item => {
+      const pos = Number(item.position || 0) || 0;
+      const candidateId = safeText(item.candidateId || "");
+      const name = safeText(item.artisticName || "Candidato");
+      const avg = Number(item.avgScore100 || 0);
+      const cnt = Number(item.scoresCount || 0);
 
-      const photo = pickPhotoUrl(c);
-      const ini = initials(c.artisticName || c.name || "");
+      const photoId = extractDriveFileId(item.photoUrl);
+      const photoSrc = photoId ? drivePhotoThumbUrl(photoId, 500) : "";
 
       return `
-        <article class="card">
-          <div class="rankBadge">${pos || ""}</div>
+        <div class="item">
+          <div class="left">
+            <div class="pos">${pos || "-"}</div>
 
-          <div class="avatar" aria-label="Foto do candidato">
-            ${photo
-              ? `<img
-                    src="${esc(photo)}"
-                    alt="Foto de ${name}"
-                    loading="lazy"
-                    referrerpolicy="no-referrer"
-                    onerror="this.remove(); this.parentNode.innerHTML='<div class=\\'avatarFallback\\'>${esc(ini)}</div>';"
-                 />`
-              : `<div class="avatarFallback">${esc(ini)}</div>`
-            }
-          </div>
+            <div class="photo">
+              ${
+                photoSrc
+                  ? `<img src="${safeText(photoSrc)}" alt="Foto de ${name}" loading="lazy"
+                       onerror="this.style.opacity='0.25'; this.alt='Foto indisponível';">`
+                  : `<div class="photoPh">Foto</div>`
+              }
+            </div>
 
-          <div class="info">
-            <p class="name">${name || "Candidato"}</p>
             <div class="meta">
-              <span class="tag">ID: ${id}</span>
-              <span class="tag">${count} avaliação(ões)</span>
+              <div class="name">${name}</div>
+              <div class="mini">
+                <span class="pill">ID: ${candidateId}</span>
+                <span class="pill">${cnt} avaliação(ões)</span>
+              </div>
             </div>
           </div>
 
-          <div class="scoreBox" aria-label="Pontuação">
-            <p class="score">${scoreText}</p>
-            <p class="scoreSub">/100</p>
+          <div class="scoreBox">
+            <div class="score">${avg.toFixed(2)}</div>
+            <div class="scoreSub">/100</div>
           </div>
-        </article>
+        </div>
       `;
     }).join("");
 
-    els.list.innerHTML = html;
-    setStatus(`✅ Ranking carregado • <strong>${list.length}</strong> candidato(s)`, "ok");
+    el.list.innerHTML = html;
+
+    const dt = updatedAt ? new Date(updatedAt) : new Date();
+    const stamp = `${String(dt.getDate()).padStart(2,"0")}/${String(dt.getMonth()+1).padStart(2,"0")}/${dt.getFullYear()}, ${String(dt.getHours()).padStart(2,"0")}:${String(dt.getMinutes()).padStart(2,"0")}:${String(dt.getSeconds()).padStart(2,"0")}`;
+
+    setStatus(`Ranking carregado • ${list.length} candidato(s) • Atualizado: ${stamp}`, "ok");
   }
 
-  async function fetchRanking() {
-    const { APPS_SCRIPT_URL } = getConfig();
-    const url = `${APPS_SCRIPT_URL}?action=ranking&t=${Date.now()}`;
-
-    setStatus("Carregando ranking...", "");
+  async function load(){
     try {
-      const res = await fetch(url, { method: "GET" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      setStatus("Carregando ranking...", "info");
+      const url = buildUrl({ action:"ranking" });
+      const data = await fetchJson(url);
 
-      if (!data || data.ok !== true) {
-        throw new Error(data && data.error ? data.error : "Resposta inválida do Apps Script");
-      }
+      if (!data || data.ok !== true) throw new Error(data?.error || "Resposta inválida da API.");
 
-      // Esperado: { ok:true, ranking:[...] }
-      const ranking = Array.isArray(data.ranking) ? data.ranking : [];
-      renderRanking(ranking);
+      render(data.ranking || [], data.updatedAt || null);
     } catch (err) {
       console.error(err);
-      els.list.innerHTML = "";
-      setStatus(`❌ Erro ao carregar ranking: <strong>${esc(err.message || err)}</strong>`, "bad");
+      setStatus(`Falha ao carregar ranking: ${err.message}`, "err");
+      if (el.list) el.list.innerHTML = "";
     }
   }
 
-  function bind() {
-    if (els.btnRefresh) {
-      els.btnRefresh.addEventListener("click", fetchRanking);
-    }
+  function init(){
+    el.status = q("#statusBox");
+    el.list = q("#rankingList");
+    el.btn = q("#btnRefresh");
+
+    if (el.btn) el.btn.addEventListener("click", () => load());
+    load();
   }
 
-  // init
-  bind();
-  fetchRanking();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();
