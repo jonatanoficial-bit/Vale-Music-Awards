@@ -2,266 +2,587 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0b0f" />
   <title>Ranking • Vale Music Awards</title>
 
-  <link rel="icon" href="../assets/img/favicon.png" />
-  <link rel="stylesheet" href="../assets/css/style.css" />
-
-  <!-- Config central (mantém como está) -->
-  <script src="../assets/js/vma-config.js"></script>
-
   <style>
-    /* Ajuste visual do avatar no ranking (premium + consistente) */
-    .rankAvatar {
-      width: 54px;
-      height: 54px;
-      border-radius: 16px;
-      overflow: hidden;
-      display: grid;
-      place-items: center;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35);
+    :root{
+      --bg0:#07070a;
+      --bg1:#0b0b10;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+
+      --gold0:#f7e7a5;
+      --gold1:#d6b15a;
+      --gold2:#a87a2a;
+
+      --ok:#38d27a;
+      --warn:#ffcc66;
+      --danger:#ff5a6b;
+
+      --shadow: 0 22px 70px rgba(0,0,0,.60);
+      --blur: blur(16px);
+
+      --radius: 22px;
+      --radius2: 16px;
+      --pad: 18px;
+      --max: 1060px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", Helvetica, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 800px at 20% 10%, rgba(214,177,90,.22), transparent 60%),
+        radial-gradient(900px 600px at 80% 20%, rgba(168,122,42,.18), transparent 60%),
+        radial-gradient(1000px 700px at 50% 95%, rgba(255,255,255,.06), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
+
+    a{ color:inherit; text-decoration:none; }
+    .wrap{
+      width:100%;
+      max-width:var(--max);
+      margin:0 auto;
+      padding:18px 14px 26px;
+    }
+
+    /* TOP BAR */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 14px;
+      border:1px solid var(--stroke);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      box-shadow: var(--shadow);
+      backdrop-filter: var(--blur);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width: 0;
+    }
+    .logo{
+      width:46px;
+      height:46px;
+      border-radius:14px;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(214,177,90,.35);
+      box-shadow: 0 12px 40px rgba(214,177,90,.12);
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex: 0 0 auto;
+    }
+    .logo img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .brandTxt{
+      display:flex;
+      flex-direction:column;
+      min-width: 0;
+      line-height:1.12;
+    }
+    .brandTxt .name{
+      font-weight: 860;
+      letter-spacing:.2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      font-size: 15.5px;
+    }
+    .brandTxt .sub{
+      font-size: 12px;
+      color: var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .nav{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .pill{
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.22);
+      padding: 9px 12px;
+      border-radius: 999px;
+      color: rgba(255,255,255,.90);
+      font-weight: 680;
+      font-size: 13px;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+    }
+    .pill:active{ transform: scale(.98); }
+    .pill:hover{
+      border-color: rgba(214,177,90,.45);
+      background: rgba(214,177,90,.12);
+    }
+
+    /* HERO */
+    .hero{
+      margin-top: 16px;
+      border: 1px solid var(--stroke);
+      border-radius: calc(var(--radius) + 6px);
+      padding: 18px 16px;
+      background:
+        radial-gradient(800px 360px at 20% 20%, rgba(214,177,90,.22), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+      box-shadow: var(--shadow);
+      backdrop-filter: var(--blur);
+      overflow:hidden;
+      position:relative;
+    }
+    .hero:before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: radial-gradient(380px 220px at 86% 20%, rgba(247,231,165,.18), transparent 65%);
+      pointer-events:none;
+    }
+    .hero h1{
+      margin:0;
+      font-size: 38px;
+      letter-spacing: .2px;
+    }
+    .hero p{
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+      max-width: 68ch;
+      font-size: 14.2px;
+    }
+
+    .statusRow{
+      margin-top: 14px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+      font-weight: 750;
+      font-size: 13px;
+      color: rgba(255,255,255,.90);
+    }
+    .dot{
+      width:10px; height:10px; border-radius:50%;
+      background: rgba(255,255,255,.35);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.06);
+    }
+    .dot.ok{ background: var(--ok); box-shadow: 0 0 0 3px rgba(56,210,122,.12); }
+
+    .btn{
+      cursor:pointer;
+      user-select:none;
+      border:none;
+      outline:none;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 860;
+      font-size: 13px;
+      color: #111;
+      background: linear-gradient(135deg, var(--gold0), var(--gold1));
+      box-shadow: 0 18px 55px rgba(214,177,90,.22);
+      transition: transform .12s ease, filter .12s ease;
+    }
+    .btn:active{ transform: scale(.98); }
+    .btn:hover{ filter: brightness(1.03); }
+
+    .info{
+      margin-top: 10px;
+      color: rgba(255,255,255,.78);
+      font-size: 12.8px;
+    }
+    .info strong{ color: rgba(255,255,255,.92); }
+
+    /* LIST */
+    .list{
+      margin-top: 16px;
+      display:flex;
+      flex-direction:column;
+      gap: 12px;
+    }
+
+    .card{
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border-radius: var(--radius);
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+      backdrop-filter: var(--blur);
+      overflow:hidden;
+      padding: 14px;
+      display:flex;
+      align-items:center;
+      gap: 12px;
+    }
+
+    .pos{
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 950;
+      font-size: 16px;
+      color: rgba(255,255,255,.92);
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(214,177,90,.25);
+      box-shadow: 0 14px 40px rgba(214,177,90,.10);
       flex: 0 0 auto;
     }
 
-    .rankAvatar img {
-      width: 100%;
-      height: 100%;
+    .avatar{
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.25);
+      overflow:hidden;
+      flex: 0 0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+    }
+    .avatar img{
+      width:100%;
+      height:100%;
       object-fit: cover;
-      display: block;
-      filter: saturate(1.05) contrast(1.02);
+      display:block;
+      transform: translateZ(0);
     }
-
-    .rankAvatar .fallback {
-      width: 100%;
-      height: 100%;
-      display: grid;
-      place-items: center;
+    .avatar .ph{
+      font-size: 11px;
+      color: rgba(255,255,255,.50);
       font-weight: 800;
-      letter-spacing: 0.5px;
-      color: rgba(255,255,255,0.92);
-      background: radial-gradient(circle at 30% 20%, rgba(212,175,55,0.35), rgba(0,0,0,0.25) 55%),
-                  linear-gradient(135deg, rgba(255,255,255,0.06), rgba(0,0,0,0.25));
+      letter-spacing:.2px;
     }
 
-    /* Segurança: garante que o item não “quebre layout” */
-    .rankRow {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .main{
+      min-width:0;
+      flex: 1 1 auto;
+      display:flex;
+      flex-direction:column;
+      gap: 4px;
+    }
+    .titleRow{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .name{
+      font-size: 16px;
+      font-weight: 900;
+      line-height:1.15;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 100%;
+    }
+    .meta{
+      color: rgba(255,255,255,.72);
+      font-size: 12.6px;
+      display:flex;
+      flex-wrap:wrap;
+      gap: 8px;
+      align-items:center;
+    }
+    .chip{
+      padding: 5px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      font-weight: 760;
+      font-size: 12px;
+      color: rgba(255,255,255,.78);
+    }
+
+    .scoreBox{
+      width: 110px;
+      border-radius: 18px;
+      padding: 10px 12px;
+      text-align:right;
+      border: 1px solid rgba(214,177,90,.22);
+      background:
+        radial-gradient(180px 100px at 20% 20%, rgba(214,177,90,.22), transparent 65%),
+        rgba(0,0,0,.22);
+      box-shadow: 0 18px 55px rgba(214,177,90,.10);
+      flex: 0 0 auto;
+    }
+    .score{
+      font-size: 22px;
+      font-weight: 950;
+      color: var(--gold0);
+      line-height:1.05;
+    }
+    .scoreSub{
+      color: rgba(255,255,255,.70);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .footer{
+      margin-top: 16px;
+      color: rgba(255,255,255,.55);
+      font-size: 12px;
+      text-align:center;
+      padding: 8px 0 4px;
+    }
+
+    .err{
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,90,107,.28);
+      background: rgba(255,90,107,.10);
+      color: rgba(255,255,255,.88);
+      font-weight: 750;
+      display:none;
+      white-space:pre-wrap;
+    }
+
+    @media (max-width: 520px){
+      .hero h1{ font-size: 34px; }
+      .scoreBox{ width: 98px; }
+      .pos{ width: 44px; height:44px; }
+      .avatar{ width: 52px; height: 52px; }
     }
   </style>
+
+  <!-- Config global do projeto -->
+  <script src="../assets/js/vma-config.js"></script>
 </head>
 
-<body class="appBody">
-  <header class="topbar">
-    <div class="brand">
-      <img src="../assets/img/vale-producao-logo.png" alt="Vale Produção" class="brandLogo" />
-      <div class="brandText">
-        <div class="brandTitle">Vale Music Awards</div>
-        <div class="brandSub">Ranking Oficial • Atualização ao vivo</div>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo" aria-label="Vale Produção">
+          <!-- Caminho do logo: ajuste se necessário conforme sua estrutura -->
+          <img src="../assets/img/vale-producao-logo.png" alt="Vale Produção" />
+        </div>
+        <div class="brandTxt">
+          <div class="name">Vale Music Awards</div>
+          <div class="sub">Ranking Oficial • Atualização ao vivo</div>
+        </div>
       </div>
-    </div>
 
-    <nav class="navPills">
-      <a class="pill" href="../index.html">Início</a>
-      <a class="pill" href="./inscricao.html">Inscrição</a>
-      <a class="pill pillGold" href="./jurados.html">Área de jurados</a>
-    </nav>
-  </header>
+      <nav class="nav">
+        <a class="pill" href="../index.html">Início</a>
+        <a class="pill" href="./inscricao.html">Inscrição</a>
+        <a class="pill" href="./jurados.html">Área de jurados</a>
+      </nav>
+    </header>
 
-  <main class="container">
-    <section class="heroCard">
-      <h1 class="heroTitle">Ranking ao vivo</h1>
-      <p class="heroDesc">
+    <section class="hero">
+      <h1>Ranking ao vivo</h1>
+      <p>
         O ranking é calculado a partir da <strong>média das notas (0–100)</strong> registradas pelos jurados.
         A atualização ocorre automaticamente após cada avaliação confirmada.
       </p>
 
-      <div class="heroActions">
-        <div class="chip chipOnline">
-          <span class="dot"></span>
-          <span>Online</span>
-        </div>
-
-        <button id="btnRefresh" class="btn btnPrimary">Atualizar</button>
+      <div class="statusRow">
+        <span class="badge"><span id="dot" class="dot"></span><span id="onlineTxt">Offline</span></span>
+        <button id="btnReload" class="btn" type="button">Atualizar</button>
       </div>
 
-      <div id="statusBox" class="statusBox">
-        <span id="statusText">Pronto para carregar ranking...</span>
-        <div class="statusMeta" id="updatedText"></div>
-      </div>
+      <div class="info" id="infoTxt">Pronto para carregar ranking…</div>
+      <div class="err" id="errBox"></div>
     </section>
 
-    <section class="listWrap">
-      <div id="rankingList" class="rankingList"></div>
-    </section>
+    <section class="list" id="list"></section>
 
-    <footer class="footer">
-      Criado por Jonatan Vale em parceria com Vale Produção.
-    </footer>
-  </main>
+    <div class="footer">Criado por Jonatan Vale em parceria com Vale Produção.</div>
+  </div>
 
   <script>
-    (function () {
-      "use strict";
+    (function(){
+      const listEl = document.getElementById("list");
+      const infoEl = document.getElementById("infoTxt");
+      const errEl  = document.getElementById("errBox");
+      const dotEl  = document.getElementById("dot");
+      const onEl   = document.getElementById("onlineTxt");
+      const btn    = document.getElementById("btnReload");
 
-      const listEl = document.getElementById("rankingList");
-      const btn = document.getElementById("btnRefresh");
-      const statusText = document.getElementById("statusText");
-      const updatedText = document.getElementById("updatedText");
+      const cfg = (window.VMA_CONFIG || {});
+      const baseUrl = (cfg.APPS_SCRIPT_URL || "").trim();
 
-      function nowBR() {
-        try { return new Date().toLocaleString("pt-BR"); } catch { return String(new Date()); }
-      }
-
-      function setStatus(msg) {
-        statusText.textContent = msg;
-        updatedText.textContent = "Atualizado: " + nowBR();
-      }
-
-      function esc(s) {
-        return String(s ?? "")
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
-
-      function initials(name) {
-        const n = String(name || "").trim();
-        if (!n) return "VA";
-        const parts = n.split(/\s+/).filter(Boolean);
-        const a = (parts[0] || "").slice(0, 1);
-        const b = (parts.length > 1 ? parts[parts.length - 1] : parts[0]).slice(0, 1);
-        return (a + b).toUpperCase();
-      }
-
-      // ✅ MESMA LÓGICA DO JURADOS (gerar imagem a partir do ID do Drive)
-      function extractDriveId(url) {
-        const u = String(url || "");
-        // uc?...id=FILEID
-        let m = u.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
-        if (m && m[1]) return m[1];
-        // /file/d/FILEID
-        m = u.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/);
-        if (m && m[1]) return m[1];
-        return "";
-      }
-
-      // Gera URL que renderiza em <img> (thumbnail)
-      function driveThumbFromAny(url) {
-        const id = extractDriveId(url);
-        if (!id) return "";
-        return "https://drive.google.com/thumbnail?id=" + id + "&sz=w300";
-      }
-
-      function normalizeScore(n) {
-        const v = Number(n);
-        if (!Number.isFinite(v)) return 0;
-        return Math.max(0, Math.min(100, v));
-      }
-
-      function renderRanking(items) {
-        if (!Array.isArray(items) || items.length === 0) {
-          listEl.innerHTML = "";
-          setStatus("Nenhum candidato no ranking ainda.");
-          return;
+      function setOnline(v){
+        if(v){
+          dotEl.classList.add("ok");
+          onEl.textContent = "Online";
+        } else {
+          dotEl.classList.remove("ok");
+          onEl.textContent = "Offline";
         }
+      }
 
-        const html = items.map(function (c) {
-          const pos = Number(c.position || 0) || 0;
-          const cid = esc(c.candidateId || "");
-          const nameRaw = c.artisticName || c.name || "Candidato";
-          const name = esc(nameRaw);
-          const score = normalizeScore(c.avgScore100);
-          const scoreText = score.toFixed(2);
-          const count = Number(c.scoresCount || 0) || 0;
+      function showError(msg){
+        errEl.style.display = "block";
+        errEl.textContent = msg;
+      }
+      function clearError(){
+        errEl.style.display = "none";
+        errEl.textContent = "";
+      }
 
-          // prioridade: se vier "photoThumbUrl" do backend (futuro), usa.
-          // senão converte o que já existe (photoUrl/photoPublicUrl) pra thumbnail
-          const srcRaw =
-            (c.photoThumbUrl || "") ||
-            (c.photoViewUrl || "") ||
-            (c.photoUrl || "") ||
-            (c.photoPublicUrl || "");
+      function esc(s){
+        return String(s ?? "")
+          .replaceAll("&","&amp;")
+          .replaceAll("<","&lt;")
+          .replaceAll(">","&gt;")
+          .replaceAll('"',"&quot;")
+          .replaceAll("'","&#039;");
+      }
 
-          const photo = driveThumbFromAny(srcRaw);
+      function fmt(n){
+        const x = Number(n);
+        if(!Number.isFinite(x)) return "0.00";
+        return x.toFixed(2);
+      }
 
-          const ini = esc(initials(nameRaw));
+      function avatarHtml(photoUrl, name){
+        const safeName = esc(name || "candidato");
+        if(!photoUrl) {
+          return `<div class="avatar"><div class="ph">Foto</div></div>`;
+        }
+        const u = esc(photoUrl);
+        return `
+          <div class="avatar">
+            <img src="${u}" alt="Foto de ${safeName}" loading="lazy"
+              onerror="this.onerror=null; this.parentElement.innerHTML='<div class=&quot;ph&quot;>Foto</div>';">
+          </div>
+        `;
+      }
 
-          return `
-            <div class="rankCard">
-              <div class="rankLeft">
-                <div class="rankPos">${pos}</div>
+      function render(ranking){
+        listEl.innerHTML = "";
 
-                <div class="rankRow">
-                  <div class="rankAvatar">
-                    ${
-                      photo
-                        ? `<img src="${esc(photo)}"
-                               alt="Foto de ${name}"
-                               loading="lazy"
-                               referrerpolicy="no-referrer"
-                               onerror="this.parentNode.innerHTML='<div class=\\'fallback\\'>${ini}</div>';">`
-                        : `<div class="fallback">${ini}</div>`
-                    }
-                  </div>
-
-                  <div class="rankInfo">
-                    <div class="rankName">${name}</div>
-                    <div class="rankMeta">
-                      <span class="tag">ID: ${cid}</span>
-                      <span class="tag">${count} avaliação(ões)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="rankScore">
-                <div class="rankScoreNum">${scoreText}</div>
-                <div class="rankScoreSub">/100</div>
+        if(!Array.isArray(ranking) || ranking.length === 0){
+          listEl.innerHTML = `
+            <div class="card">
+              <div class="main">
+                <div class="name">Nenhum candidato no ranking ainda</div>
+                <div class="meta">O ranking aparece após o recebimento de inscrições e avaliações.</div>
               </div>
             </div>
           `;
-        }).join("");
-
-        listEl.innerHTML = html;
-        setStatus("✅ Ranking carregado • " + items.length + " candidato(s)");
-      }
-
-      async function loadRanking() {
-        const cfg = window.VMA_CONFIG || {};
-        const base = String(cfg.APPS_SCRIPT_URL || "").trim().replace(/\/$/, "");
-        if (!base) {
-          setStatus("Erro: Config não carregou (vma-config.js).");
           return;
         }
 
-        setStatus("Carregando ranking...");
-        try {
-          const url = base + "?action=ranking&t=" + Date.now();
-          const res = await fetch(url);
-          if (!res.ok) throw new Error("HTTP " + res.status);
+        for (const item of ranking){
+          const pos = Number(item.position || 0) || 0;
+          const name = item.artisticName || item.name || "Candidato";
+          const cid  = item.candidateId || "";
+          const photoUrl = item.photoUrl || item.photoPublicUrl || ""; // tolerante a variações
+          const avg = fmt(item.avgScore100 || 0);
+          const count = Number(item.scoresCount || 0) || 0;
 
+          const card = document.createElement("div");
+          card.className = "card";
+
+          card.innerHTML = `
+            <div class="pos">${pos || ""}</div>
+            ${avatarHtml(photoUrl, name)}
+            <div class="main">
+              <div class="titleRow">
+                <div class="name">${esc(name)}</div>
+                <div class="scoreBox">
+                  <div class="score">${esc(avg)}</div>
+                  <div class="scoreSub">/100</div>
+                </div>
+              </div>
+              <div class="meta">
+                <span class="chip">ID: ${esc(cid)}</span>
+                <span class="chip">${esc(count)} avaliação(ões)</span>
+              </div>
+            </div>
+          `;
+
+          listEl.appendChild(card);
+        }
+      }
+
+      async function loadRanking(){
+        clearError();
+
+        if(!baseUrl){
+          setOnline(false);
+          showError("Config não carregou: verifique ../assets/js/vma-config.js e APPS_SCRIPT_URL.");
+          return;
+        }
+
+        infoEl.textContent = "Carregando ranking…";
+        setOnline(false);
+
+        // cache-buster para evitar ranking “antigo” no mobile
+        const url = baseUrl + (baseUrl.includes("?") ? "&" : "?") + "action=ranking&_ts=" + Date.now();
+
+        try{
+          const res = await fetch(url, { method: "GET", cache: "no-store" });
+          if(!res.ok){
+            throw new Error("HTTP " + res.status + " (" + res.statusText + ")");
+          }
           const data = await res.json();
-          if (!data || data.ok !== true) {
-            throw new Error((data && data.error) ? data.error : "Resposta inválida do Apps Script");
+
+          if(!data || data.ok !== true){
+            throw new Error((data && data.error) ? String(data.error) : "Resposta inválida do Apps Script.");
           }
 
-          renderRanking(Array.isArray(data.ranking) ? data.ranking : []);
-        } catch (e) {
-          console.error(e);
-          listEl.innerHTML = "";
-          setStatus("❌ Erro ao carregar ranking: " + (e && e.message ? e.message : e));
+          setOnline(true);
+
+          const qtd = Array.isArray(data.ranking) ? data.ranking.length : 0;
+          const now = new Date();
+          infoEl.textContent = `✅ Ranking carregado • ${qtd} candidato(s) • Atualizado: ${now.toLocaleString("pt-BR")}`;
+
+          render(data.ranking || []);
+
+        }catch(err){
+          setOnline(false);
+          infoEl.textContent = "Falha ao carregar ranking.";
+          showError("Erro ao carregar ranking:\n" + (err && err.message ? err.message : String(err)));
+          render([]);
         }
       }
 
       btn.addEventListener("click", loadRanking);
+
+      // Autoload
       loadRanking();
+
+      // Atualiza automático leve (opcional)
+      setInterval(loadRanking, 60000);
     })();
   </script>
 </body>
