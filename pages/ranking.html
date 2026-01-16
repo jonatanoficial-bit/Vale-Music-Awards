@@ -1,324 +1,441 @@
-<!-- pages/ranking.html -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ranking • Vale Music Awards</title>
-  <link rel="icon" href="../assets/img/favicon.png" />
-  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Ranking — Vale Music Awards</title>
+  <meta name="theme-color" content="#0b0b0f" />
+
   <style>
     :root{
-      --bg0:#07070a;
-      --bg1:#0d0d12;
-      --gold:#d6b35e;
-      --gold2:#f2d38a;
-      --text:#e9e9ef;
-      --muted:#b8b8c6;
-      --shadow: 0 20px 70px rgba(0,0,0,.55);
+      --bg:#07070a;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
+      --muted2: rgba(255,255,255,.45);
+      --gold1:#f7d27a;
+      --gold2:#caa24c;
+      --shadow: 0 30px 80px rgba(0,0,0,.65);
+      --radius: 22px;
+      --radius2: 18px;
     }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
     body{
-      background: radial-gradient(1200px 800px at 20% 10%, rgba(214,179,94,.22), transparent 55%),
-                  radial-gradient(1000px 700px at 80% 20%, rgba(242,211,138,.14), transparent 60%),
-                  linear-gradient(180deg, var(--bg0), var(--bg1));
-      color: var(--text);
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, Helvetica, "Apple Color Emoji","Segoe UI Emoji";
+      background:
+        radial-gradient(1200px 800px at 70% 10%, rgba(202,162,76,.18), transparent 60%),
+        radial-gradient(900px 600px at 25% 20%, rgba(247,210,122,.12), transparent 55%),
+        radial-gradient(900px 800px at 30% 90%, rgba(255,255,255,.06), transparent 60%),
+        linear-gradient(180deg, #050507, #09090d 50%, #07070a);
+      color:var(--text);
+      overflow-x:hidden;
     }
-    .wrap{ max-width: 1100px; margin:0 auto; padding: 22px 16px 70px; }
+
+    .wrap{
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 22px 16px 40px;
+    }
+
     .topbar{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px; padding:12px 12px;
-      border-radius: 16px;
-      background: rgba(255,255,255,.03);
-      border: 1px solid rgba(255,255,255,.10);
-      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+      position: sticky;
+      top:0;
+      z-index:10;
+      padding: 14px 0 12px;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: linear-gradient(180deg, rgba(7,7,10,.72), rgba(7,7,10,.35));
+      border-bottom: 1px solid rgba(255,255,255,.06);
     }
-    .brand{ display:flex; align-items:center; gap:12px; min-width:0; }
-    .brand img{ width:46px; height:46px; object-fit:contain; }
-    .brand .t{ display:flex; flex-direction:column; line-height:1.1; min-width:0; }
-    .brand .t strong{ font-size:15px; }
-    .brand .t span{ font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-    .nav{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
-    .nav a{
-      color: var(--text); text-decoration:none;
-      font-size: 13px; padding: 10px 12px;
+
+    .topbarInner{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      justify-content:space-between;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width: 0;
+    }
+    .brandLogo{
+      width:42px;height:42px;border-radius:14px;
+      background: radial-gradient(circle at 30% 20%, rgba(247,210,122,.25), rgba(255,255,255,.06) 55%, rgba(0,0,0,.25));
+      border:1px solid rgba(255,255,255,.10);
+      display:grid;place-items:center;
+      overflow:hidden;
+      box-shadow: 0 14px 30px rgba(0,0,0,.45);
+    }
+    .brandLogo img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      padding:6px;
+      display:block;
+    }
+    .brandText{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      line-height:1.1;
+    }
+    .brandText .t1{
+      font-weight:800;
+      letter-spacing:.2px;
+      font-size: 15.5px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .brandText .t2{
+      color:var(--muted);
+      font-size:12.5px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .nav{
+      display:flex; gap:10px; align-items:center;
+    }
+    .pill{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.86);
+      padding: 10px 14px;
       border-radius: 999px;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.10);
+      text-decoration:none;
+      font-weight:700;
+      font-size: 13.5px;
       transition: .2s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
     }
-    .nav a:hover{ transform: translateY(-1px); border-color: rgba(214,179,94,.55); }
+    .pill:hover{ transform: translateY(-1px); background: rgba(255,255,255,.085); border-color: rgba(255,255,255,.16); }
+    .pill.primary{
+      border-color: rgba(247,210,122,.28);
+      background: linear-gradient(180deg, rgba(247,210,122,.20), rgba(202,162,76,.12));
+      color: rgba(255,255,255,.92);
+    }
 
     .hero{
       margin-top: 18px;
-      padding: 18px;
-      border-radius: 22px;
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border-radius: var(--radius);
       border: 1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(900px 500px at 70% 0%, rgba(247,210,122,.16), transparent 60%),
+        radial-gradient(800px 500px at 20% 10%, rgba(202,162,76,.10), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
       box-shadow: var(--shadow);
-    }
-    h1{ margin: 0; font-size: 26px; letter-spacing:.2px; }
-    .sub{ margin-top: 8px; color: var(--muted); font-size: 13px; line-height:1.6; }
-    .bar{
-      margin-top: 12px;
-      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
-      padding: 12px 14px;
-      border-radius: 16px;
-      background: rgba(255,255,255,.03);
-      border: 1px solid rgba(255,255,255,.10);
-    }
-    .bar .left{ color: var(--muted); font-size: 13px; }
-    .btn{
-      cursor:pointer;
-      padding: 10px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      font-weight:800;
-      transition:.18s ease;
-    }
-    .btn:hover{ transform: translateY(-1px); border-color: rgba(214,179,94,.55); }
-
-    .top3{
-      margin-top: 14px;
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-    }
-    @media (max-width: 920px){
-      .top3{ grid-template-columns: 1fr; }
-    }
-    .podium{
-      border-radius: 22px;
+      padding: 22px;
       overflow:hidden;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.25);
-      box-shadow: 0 18px 55px rgba(0,0,0,.35);
       position:relative;
     }
-    .podium .head{
-      padding: 14px;
-      display:flex; gap:12px; align-items:center;
-      border-bottom: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
+
+    .hero:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(500px 220px at 15% 20%, rgba(255,255,255,.08), transparent 60%),
+        radial-gradient(600px 240px at 75% 0%, rgba(247,210,122,.10), transparent 60%);
+      pointer-events:none;
+      filter: blur(0px);
+      opacity:.9;
     }
-    .pos{
-      width: 40px; height: 40px; border-radius: 14px;
-      display:flex; align-items:center; justify-content:center;
-      font-weight: 1000;
-      background: rgba(214,179,94,.12);
-      border: 1px solid rgba(214,179,94,.22);
-      color: var(--gold2);
-      flex:0 0 auto;
+
+    .heroInner{
+      position:relative;
+      display:flex;
+      gap:16px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
     }
-    .avatar{
-      width: 54px; height: 54px; border-radius: 18px;
-      overflow:hidden; border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      flex:0 0 auto;
+
+    .heroLeft{
+      min-width: 260px;
+      flex: 1 1 520px;
     }
-    .avatar img{ width:100%; height:100%; object-fit:cover; }
-    .meta{ min-width:0; }
-    .name{ font-weight:1000; }
-    .id{ margin-top:4px; font-size: 12px; color: var(--muted); }
-    .score{
-      margin-left:auto;
-      text-align:right;
+    .hTitle{
+      font-size: clamp(28px, 3.2vw, 40px);
+      margin: 0 0 6px;
+      letter-spacing: .2px;
+      line-height: 1.05;
+    }
+    .hTitle span{
+      color: transparent;
+      background: linear-gradient(90deg, var(--gold1), var(--gold2));
+      -webkit-background-clip:text;
+      background-clip:text;
+    }
+    .hSub{
+      margin: 0;
+      color: var(--muted);
+      font-size: 14.5px;
+      line-height: 1.45;
+      max-width: 70ch;
+    }
+
+    .heroRight{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex: 0 0 auto;
+    }
+    .chip{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      border-radius: 999px;
       padding: 10px 12px;
-      border-radius: 16px;
-      background: rgba(214,179,94,.10);
-      border: 1px solid rgba(214,179,94,.22);
-      color: var(--gold2);
-      min-width: 120px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      color: rgba(255,255,255,.80);
+      font-size: 13px;
+      font-weight:700;
     }
-    .score .v{ font-size: 26px; font-weight: 1000; line-height:1; }
-    .score .s{ font-size: 12px; opacity:.9; margin-top:2px; }
+    .dot{
+      width:8px; height:8px; border-radius:999px;
+      background: rgba(108, 255, 170, .9);
+      box-shadow: 0 0 0 6px rgba(108, 255, 170, .10);
+    }
+
+    .btn{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.90);
+      padding: 11px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 13.5px;
+      cursor:pointer;
+      transition:.2s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.085); border-color: rgba(255,255,255,.16); }
+
+    .statusLine{
+      margin-top: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      padding: 12px 14px;
+      color: rgba(255,255,255,.80);
+      font-weight: 700;
+      font-size: 13.5px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .statusLine strong{ color: rgba(255,255,255,.92); }
+    .statusBad{ color: rgba(255,120,120,.95); }
+    .statusOk{ color: rgba(120,255,180,.95); }
 
     .list{
-      margin-top: 14px;
-      border-radius: 22px;
-      overflow:hidden;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.20);
-      box-shadow: 0 18px 55px rgba(0,0,0,.35);
+      margin-top: 18px;
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
     }
-    .row{
-      display:flex; gap:12px; align-items:center;
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-    }
-    .row:last-child{ border-bottom:0; }
-    .row .posSmall{
-      width: 34px; height: 34px; border-radius: 12px;
-      display:flex; align-items:center; justify-content:center;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.10);
-      color: var(--muted);
-      font-weight: 900;
-      flex:0 0 auto;
-    }
-    .row .avatar{ width:44px; height:44px; border-radius: 14px; }
-    .row .meta .name{ font-size: 14px; }
-    .row .meta .id{ font-size: 12px; }
 
-    .row .scoreSmall{
-      margin-left:auto;
-      font-weight: 1000;
-      color: var(--gold2);
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(214,179,94,.22);
-      background: rgba(214,179,94,.10);
-      min-width: 92px;
-      text-align:center;
+    @media (max-width: 860px){
+      .list{ grid-template-columns: 1fr; }
+      .hero{ padding: 18px; }
     }
-    .empty{
-      padding: 18px;
-      text-align:center;
+
+    .card{
+      border-radius: var(--radius2);
+      border:1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(520px 260px at 70% 0%, rgba(247,210,122,.10), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      box-shadow: 0 20px 45px rgba(0,0,0,.35);
+      padding: 14px;
+      display:flex;
+      gap: 12px;
+      align-items:center;
+      overflow:hidden;
+      position:relative;
+    }
+
+    .rankBadge{
+      width: 40px; height: 40px;
+      border-radius: 14px;
+      border: 1px solid rgba(247,210,122,.30);
+      background: linear-gradient(180deg, rgba(247,210,122,.22), rgba(202,162,76,.10));
+      display:grid; place-items:center;
+      font-weight: 900;
+      color: rgba(255,255,255,.92);
+      flex: 0 0 auto;
+      box-shadow: 0 14px 26px rgba(0,0,0,.35);
+    }
+
+    .avatar{
+      width: 54px; height: 54px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      overflow:hidden;
+      flex: 0 0 auto;
+      display:grid;
+      place-items:center;
+      position:relative;
+    }
+    .avatar img{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      display:block;
+    }
+    .avatarFallback{
+      width:100%;
+      height:100%;
+      display:grid;
+      place-items:center;
+      font-weight: 900;
+      letter-spacing:.4px;
+      color: rgba(255,255,255,.85);
+      background:
+        radial-gradient(circle at 30% 20%, rgba(247,210,122,.22), rgba(255,255,255,.06) 55%, rgba(0,0,0,.20));
+    }
+
+    .info{
+      min-width:0;
+      flex: 1 1 auto;
+    }
+    .name{
+      font-weight: 900;
+      font-size: 16px;
+      line-height: 1.15;
+      margin: 0 0 6px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .meta{
+      display:flex; gap:8px; flex-wrap:wrap;
       color: var(--muted);
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .tag{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: rgba(255,255,255,.72);
+    }
+
+    .scoreBox{
+      width: 92px;
+      border-radius: 18px;
+      border:1px solid rgba(247,210,122,.25);
+      background: linear-gradient(180deg, rgba(247,210,122,.18), rgba(202,162,76,.08));
+      padding: 10px 10px;
+      text-align:right;
+      flex: 0 0 auto;
+    }
+    .score{
+      font-size: 22px;
+      font-weight: 1000;
+      letter-spacing: .2px;
+      margin: 0;
+      color: rgba(247,210,122,.95);
+    }
+    .scoreSub{
+      margin: 0;
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(255,255,255,.70);
+    }
+
+    .mutedSmall{
+      color: var(--muted2);
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .foot{
+      margin-top: 18px;
+      text-align:center;
+      color: rgba(255,255,255,.40);
+      font-size: 12px;
+      font-weight: 700;
     }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <header class="topbar">
-      <div class="brand">
-        <img src="../assets/img/vale-producao-logo.png" alt="Vale Produções" />
-        <div class="t">
-          <strong>Vale Music Awards</strong>
-          <span>Ranking Oficial • Atualização automática após avaliações</span>
+  <div class="topbar">
+    <div class="wrap">
+      <div class="topbarInner">
+        <div class="brand">
+          <div class="brandLogo" aria-label="Logo Vale Produção">
+            <!-- Ajuste aqui se seu caminho estiver diferente -->
+            <img src="../assets/img/vale-producao-logo.png" alt="Vale Produção" onerror="this.style.display='none'">
+          </div>
+          <div class="brandText">
+            <div class="t1">Vale Music Awards</div>
+            <div class="t2">Ranking Oficial • Atualização ao vivo</div>
+          </div>
+        </div>
+
+        <div class="nav">
+          <a class="pill" href="../index.html">Início</a>
+          <a class="pill" href="./inscricao.html">Inscrição</a>
+          <a class="pill primary" href="./jurados.html">Área de jurados</a>
         </div>
       </div>
-      <nav class="nav">
-        <a href="../index.html">Início</a>
-        <a href="./inscricao.html">Inscrição</a>
-        <a href="./jurados.html">Área de jurados</a>
-      </nav>
-    </header>
-
-    <section class="hero">
-      <h1>Ranking ao vivo</h1>
-      <div class="sub">
-        O ranking é calculado a partir da <strong>média das notas (0–100)</strong> registradas pelos jurados.
-        A atualização ocorre automaticamente após cada avaliação confirmada.
-      </div>
-
-      <div class="bar">
-        <div class="left" id="status">Carregando ranking...</div>
-        <button class="btn" id="refresh">Atualizar</button>
-      </div>
-
-      <div class="top3" id="top3"></div>
-      <div class="list" id="list"></div>
-    </section>
+    </div>
   </div>
 
-  <script src="../assets/js/vma-config.js"></script>
-  <script>
-    (function(){
-      const cfg = window.VMA_CONFIG;
-      const statusEl = document.getElementById("status");
-      const top3El = document.getElementById("top3");
-      const listEl = document.getElementById("list");
-      const refreshBtn = document.getElementById("refresh");
+  <div class="wrap">
+    <section class="hero">
+      <div class="heroInner">
+        <div class="heroLeft">
+          <h1 class="hTitle">Ranking <span>ao vivo</span></h1>
+          <p class="hSub">
+            O ranking é calculado a partir da <strong>média das notas (0–100)</strong> registradas pelos jurados.
+            A atualização ocorre automaticamente após cada avaliação confirmada.
+          </p>
+        </div>
 
-      function esc(str){
-        return String(str ?? "")
-          .replaceAll("&","&amp;")
-          .replaceAll("<","&lt;")
-          .replaceAll(">","&gt;")
-          .replaceAll('"',"&quot;")
-          .replaceAll("'","&#039;");
-      }
-
-      async function fetchJson(url){
-        const res = await fetch(url, {method:"GET"});
-        if(!res.ok){
-          const txt = await res.text().catch(()=> "");
-          throw new Error(`HTTP ${res.status} ${res.statusText} ${txt}`.trim());
-        }
-        return await res.json();
-      }
-
-      function rankingUrl(){
-        const u = new URL(cfg.APPS_SCRIPT_URL);
-        u.searchParams.set("action","ranking");
-        u.searchParams.set("_ts", String(Date.now()));
-        return u.toString();
-      }
-
-      function podiumCard(item){
-        const photo = item.photoUrl ? `<img src="${esc(item.photoUrl)}" alt="Foto">` : "";
-        const name = item.artisticName || item.candidateId;
-        return `
-          <article class="podium">
-            <div class="head">
-              <div class="pos">${item.position}</div>
-              <div class="avatar">${photo}</div>
-              <div class="meta">
-                <div class="name">${esc(name)}</div>
-                <div class="id">ID: ${esc(item.candidateId)} • ${item.scoresCount || 0} avaliações</div>
-              </div>
-              <div class="score">
-                <div class="v">${Number(item.avgScore100 || 0).toFixed(2)}</div>
-                <div class="s">/100</div>
-              </div>
-            </div>
-          </article>
-        `;
-      }
-
-      function rowCard(item){
-        const photo = item.photoUrl ? `<img src="${esc(item.photoUrl)}" alt="Foto">` : "";
-        const name = item.artisticName || item.candidateId;
-        return `
-          <div class="row">
-            <div class="posSmall">${item.position}</div>
-            <div class="avatar">${photo}</div>
-            <div class="meta">
-              <div class="name">${esc(name)}</div>
-              <div class="id">ID: ${esc(item.candidateId)} • ${item.scoresCount || 0} avaliações</div>
-            </div>
-            <div class="scoreSmall">${Number(item.avgScore100 || 0).toFixed(2)}</div>
+        <div class="heroRight">
+          <div class="chip" title="Status">
+            <span class="dot" aria-hidden="true"></span>
+            Online
           </div>
-        `;
-      }
+          <button id="btnRefresh" class="btn" type="button">Atualizar</button>
+        </div>
+      </div>
 
-      async function load(){
-        statusEl.textContent = "Carregando ranking...";
-        top3El.innerHTML = "";
-        listEl.innerHTML = "";
+      <div id="status" class="statusLine">
+        <span>Carregando ranking...</span>
+        <span class="mutedSmall" id="lastUpdate"></span>
+      </div>
+    </section>
 
-        const data = await fetchJson(rankingUrl());
-        if(!data.ok) throw new Error(data.error || "Falha ao carregar ranking.");
+    <section id="list" class="list" aria-label="Lista do ranking"></section>
 
-        const ranking = Array.isArray(data.ranking) ? data.ranking : [];
-        if(!ranking.length){
-          top3El.innerHTML = "";
-          listEl.innerHTML = `<div class="empty">Ranking será exibido após as primeiras avaliações.</div>`;
-          statusEl.textContent = "Sem dados de ranking ainda.";
-          return;
-        }
+    <div class="foot">
+      Criado por Jonatan Vale em parceria com Vale Produção.
+    </div>
+  </div>
 
-        const top3 = ranking.slice(0,3);
-        top3El.innerHTML = top3.map(podiumCard).join("");
-
-        listEl.innerHTML = ranking.map(rowCard).join("");
-        statusEl.textContent = `✅ Ranking carregado • ${ranking.length} candidato(s)`;
-      }
-
-      refreshBtn.addEventListener("click", () => load().catch(err=>{
-        console.error(err);
-        statusEl.textContent = "⚠️ Erro ao carregar ranking. Verifique o Web App.";
-        listEl.innerHTML = `<div class="empty">Falha ao carregar. Tente novamente.</div>`;
-      }));
-
-      load().catch(err=>{
-        console.error(err);
-        statusEl.textContent = "⚠️ Erro ao carregar ranking. Verifique o Web App.";
-        listEl.innerHTML = `<div class="empty">Falha ao carregar. Tente novamente.</div>`;
-      });
-    })();
-  </script>
+  <!-- Config (precisa existir): window.VMA_CONFIG.APPS_SCRIPT_URL -->
+  <script src="../assets/js/vma-config.js"></script>
+  <script src="../assets/js/ranking.js"></script>
 </body>
 </html>
