@@ -1,206 +1,292 @@
-<!-- index.html -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Vale Music Awards • Festival Internacional</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vale Music Awards — Festival Oficial de Talentos</title>
+
+  <meta name="description" content="Vale Music Awards — festival de talentos musicais com avaliação profissional, ranking transparente e oportunidade real de carreira." />
+
   <link rel="icon" href="./assets/img/favicon.png" />
-  <link rel="stylesheet" href="./assets/css/styles.css" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+  <!-- Estilo base -->
+  <link rel="stylesheet" href="./assets/css/style.css" />
+
   <style>
-    :root{
-      --bg0:#07070a;
-      --bg1:#0d0d12;
-      --gold:#d6b35e;
-      --gold2:#f2d38a;
-      --text:#e9e9ef;
-      --muted:#b8b8c6;
-      --shadow: 0 20px 70px rgba(0,0,0,.55);
-    }
     body{
-      background: radial-gradient(1200px 800px at 20% 10%, rgba(214,179,94,.22), transparent 55%),
-                  radial-gradient(1000px 700px at 80% 20%, rgba(242,211,138,.14), transparent 60%),
-                  linear-gradient(180deg, var(--bg0), var(--bg1));
-      color: var(--text);
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(212,175,55,.18), transparent 60%),
+        radial-gradient(1000px 700px at 80% 0%, rgba(255,255,255,.06), transparent 55%),
+        linear-gradient(180deg, #050505, #0a0a0a);
+      color: rgba(255,255,255,.92);
     }
-    .wrap{ max-width: 1100px; margin:0 auto; padding: 18px 16px 70px; }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:24px 16px 60px;
+    }
 
     .topbar{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px; padding:12px 12px;
-      border-radius: 16px;
-      background: rgba(255,255,255,.03);
-      border: 1px solid rgba(255,255,255,.10);
-      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:14px 18px;
+      border-radius:26px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.55);
     }
-    .brand{ display:flex; align-items:center; gap:12px; min-width:0; }
-    .brand img{ width:46px; height:46px; object-fit:contain; }
-    .brand .t{ display:flex; flex-direction:column; line-height:1.1; min-width:0; }
-    .brand .t strong{ font-size:15px; }
-    .brand .t span{ font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-    .nav{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .brand img{
+      width:44px;
+      height:44px;
+      border-radius:14px;
+      background:#000;
+      padding:6px;
+      object-fit:contain;
+      border:1px solid rgba(212,175,55,.35);
+    }
+
+    .brand h1{
+      margin:0;
+      font-family:Cinzel, serif;
+      font-size:16px;
+      letter-spacing:.4px;
+    }
+
+    .brand span{
+      display:block;
+      font-size:12px;
+      color:rgba(255,255,255,.65);
+      margin-top:2px;
+    }
+
+    .nav{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
     .nav a{
-      color: var(--text); text-decoration:none;
-      font-size: 13px; padding: 10px 12px;
-      border-radius: 999px;
+      padding:10px 14px;
+      border-radius:999px;
+      text-decoration:none;
+      color:rgba(255,255,255,.88);
+      font-weight:700;
+      font-size:13px;
+      border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.10);
-      transition: .2s ease;
     }
-    .nav a:hover{ transform: translateY(-1px); border-color: rgba(214,179,94,.55); }
+
+    .nav a.gold{
+      background: linear-gradient(135deg, #f5d27a, #b98a1a);
+      color:#1a1204;
+      border:0;
+    }
 
     .hero{
-      margin-top: 18px;
-      padding: 20px 18px;
-      border-radius: 24px;
-      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
-      border: 1px solid rgba(255,255,255,.10);
-      box-shadow: var(--shadow);
-      position:relative;
-      overflow:hidden;
+      margin-top:24px;
+      padding:40px 24px;
+      border-radius:32px;
+      border:1px solid rgba(255,255,255,.12);
+      background: linear-gradient(180deg, rgba(212,175,55,.18), rgba(255,255,255,.04));
+      box-shadow: 0 30px 80px rgba(0,0,0,.55);
     }
-    .hero:before{
-      content:"";
-      position:absolute; inset:-2px;
-      background: radial-gradient(900px 360px at 10% 0%, rgba(214,179,94,.22), transparent 60%),
-                  radial-gradient(800px 320px at 90% 15%, rgba(242,211,138,.12), transparent 55%);
-      pointer-events:none;
+
+    .hero h2{
+      font-family:Cinzel, serif;
+      font-size:clamp(28px,4vw,42px);
+      margin:0 0 12px;
     }
-    .hero > *{ position:relative; z-index:1; }
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding: 10px 12px;
-      border-radius: 999px;
-      background: rgba(214,179,94,.10);
-      border: 1px solid rgba(214,179,94,.25);
-      color: var(--gold2);
-      font-size: 12px;
-      letter-spacing:.2px;
-      margin-bottom: 12px;
+
+    .hero p{
+      max-width:800px;
+      font-size:15px;
+      line-height:1.6;
+      color:rgba(255,255,255,.78);
     }
-    h1{
-      margin: 0 0 10px;
-      font-size: clamp(28px, 4vw, 46px);
-      letter-spacing: -0.8px;
-      line-height:1.05;
+
+    .hero .actions{
+      margin-top:24px;
+      display:flex;
+      gap:14px;
+      flex-wrap:wrap;
     }
-    h1 span{ color: var(--gold2); }
-    .lead{
-      color: var(--muted);
-      font-size: 15px;
+
+    .btn{
+      padding:14px 20px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      color:#fff;
+      font-weight:900;
+      text-decoration:none;
+      font-size:14px;
+    }
+
+    .btn.gold{
+      background: linear-gradient(135deg, #f5d27a, #b98a1a);
+      color:#1a1204;
+      border:0;
+    }
+
+    .section{
+      margin-top:48px;
+    }
+
+    .section h3{
+      font-family:Cinzel, serif;
+      font-size:28px;
+      margin-bottom:14px;
+    }
+
+    .section p{
+      max-width:900px;
       line-height:1.7;
-      max-width: 72ch;
-      margin-bottom: 14px;
-    }
-    .cta{
-      display:flex; gap:12px; flex-wrap:wrap;
-      align-items:center;
-    }
-    .btnGold{
-      cursor:pointer;
-      padding: 14px 16px;
-      border-radius: 999px;
-      border: 0;
-      background: linear-gradient(180deg, var(--gold2), var(--gold));
-      color: #1a1407;
-      font-weight: 1000;
-      letter-spacing: .2px;
-      box-shadow: 0 18px 45px rgba(214,179,94,.25);
-      min-width: 220px;
-      text-decoration:none;
-      display:inline-flex;
-      justify-content:center;
-      align-items:center;
-      gap:10px;
-    }
-    .btnGhost{
-      cursor:pointer;
-      padding: 14px 16px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      font-weight: 900;
-      min-width: 180px;
-      text-decoration:none;
-      display:inline-flex;
-      justify-content:center;
-      align-items:center;
-      gap:10px;
+      color:rgba(255,255,255,.78);
+      margin-bottom:14px;
     }
 
     .grid{
-      margin-top: 14px;
       display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-    }
-    @media (max-width: 920px){
-      .grid{ grid-template-columns: 1fr; }
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:16px;
+      margin-top:22px;
     }
 
     .card{
-      border-radius: 22px;
-      padding: 14px;
-      background: rgba(0,0,0,.22);
-      border: 1px solid rgba(255,255,255,.10);
-      box-shadow: 0 18px 55px rgba(0,0,0,.35);
+      padding:20px;
+      border-radius:24px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
     }
-    .card .t{ font-weight:1000; }
-    .card .d{ margin-top:6px; color: var(--muted); font-size: 13px; line-height:1.6; }
 
-    /* mobile polish */
-    @media (max-width: 560px){
-      .brand img{ width:40px; height:40px; }
-      .nav{ display:none; } /* deixa clean no mobile */
+    .card strong{
+      display:block;
+      font-size:15px;
+      margin-bottom:6px;
+    }
+
+    footer{
+      margin-top:48px;
+      text-align:center;
+      font-size:12px;
+      color:rgba(255,255,255,.55);
+    }
+
+    @media(max-width:768px){
+      .grid{grid-template-columns:1fr}
     }
   </style>
 </head>
+
 <body>
   <div class="wrap">
+
+    <!-- TOPO -->
     <header class="topbar">
       <div class="brand">
-        <img src="./assets/img/vale-producao-logo.png" alt="Vale Produções" />
-        <div class="t">
-          <strong>Vale Music Awards</strong>
-          <span>Festival Internacional • Online</span>
+        <img src="./assets/img/vale-producao-logo.png" alt="Vale Produção">
+        <div>
+          <h1>Vale Music Awards</h1>
+          <span>Festival Oficial de Talentos</span>
         </div>
       </div>
+
       <nav class="nav">
+        <a href="./index.html">Início</a>
         <a href="./pages/inscricao.html">Inscrição</a>
         <a href="./pages/ranking.html">Ranking</a>
-        <a href="./pages/jurados.html">Área de jurados</a>
+        <a href="./pages/jurados.html" class="gold">Área de Jurados</a>
       </nav>
     </header>
 
+    <!-- HERO -->
     <section class="hero">
-      <div class="pill">🏆 Luxo • Padrão internacional • 100% online</div>
-      <h1><span>Vale</span> Music Awards</h1>
-      <p class="lead">
-        Um festival internacional de talentos para revelar grandes vozes.
-        Envie sua música pelo formulário oficial, acompanhe o ranking ao vivo e concorra à produção completa com a Vale Produções.
+      <h2>Reconhecendo talentos.<br>Construindo futuros na música.</h2>
+      <p>
+        O <strong>Vale Music Awards</strong> é um festival musical criado para descobrir,
+        valorizar e impulsionar novos talentos, com avaliação profissional,
+        critérios técnicos e ranking transparente.
       </p>
 
-      <div class="cta">
-        <a class="btnGold" href="./pages/inscricao.html">Inscrever-se agora →</a>
-        <a class="btnGhost" href="./pages/ranking.html">Ver ranking</a>
+      <div class="actions">
+        <a href="./pages/inscricao.html" class="btn gold">Inscreva-se agora</a>
+        <a href="./pages/ranking.html" class="btn">Ver ranking</a>
       </div>
+    </section>
+
+    <!-- TEXTO INSTITUCIONAL -->
+    <section class="section">
+      <h3>Sobre o projeto</h3>
+
+      <p>
+        O <strong>Vale Music Awards</strong> nasce com o propósito de criar uma plataforma
+        séria, transparente e profissional para artistas independentes que desejam
+        reconhecimento, orientação e oportunidades reais no mercado musical.
+      </p>
+
+      <p>
+        O projeto é idealizado por <strong>Jonatan Vale</strong>, produtor musical,
+        gestor artístico e fundador da <strong>Vale Produção</strong>.
+        Com experiência prática no desenvolvimento de carreiras musicais,
+        produção artística e direção criativa, Jonatan atua diretamente
+        na construção de projetos voltados à profissionalização do artista independente.
+      </p>
+
+      <p>
+        A <strong>Vale Produção</strong> está há mais de <strong>2 anos em atividade</strong>,
+        em constante processo de expansão, oferecendo serviços de produção musical,
+        gravação, gestão de carreira, lançamentos e estrutura digital.
+        O festival é uma extensão natural desse trabalho.
+      </p>
+
+      <p>
+        Todo o processo do Vale Music Awards é realizado de forma online,
+        com inscrições oficiais, avaliações registradas, jurados identificados
+        e ranking atualizado automaticamente, garantindo credibilidade,
+        meritocracia e respeito ao talento.
+      </p>
 
       <div class="grid">
         <div class="card">
-          <div class="t">5 jurados</div>
-          <div class="d">Profissionais da música avaliando com critérios técnicos.</div>
+          <strong>Seriedade</strong>
+          Avaliação técnica estruturada, com critérios claros e profissionais.
         </div>
+
         <div class="card">
-          <div class="t">Nota 0–100</div>
-          <div class="d">Cálculo automático por critérios (sem “nota manual final”).</div>
+          <strong>Transparência</strong>
+          Ranking público, notas registradas e processo auditável.
         </div>
+
         <div class="card">
-          <div class="t">Premiação</div>
-          <div class="d">Gravação profissional + gestão de carreira + acesso aos apps da Vale.</div>
+          <strong>Oportunidade</strong>
+          O vencedor recebe gravação profissional e gestão de carreira.
         </div>
       </div>
     </section>
+
+    <footer>
+      Criado por Jonatan Vale em parceria com Vale Produção.
+    </footer>
+
   </div>
 </body>
 </html>
