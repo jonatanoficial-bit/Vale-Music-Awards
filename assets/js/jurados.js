@@ -6,6 +6,9 @@
 // - Travamento no front após enviar + bloqueio no backend (ALREADY_RATED)
 // - FIX: Foto via thumbnail do Drive + Áudio via iframe /preview (Drive Player)
 // - UX: Foto pequena, proporcional e elegante
+//
+// ✅ FIX CRÍTICO: Botão "Finalizar avaliação" agora é type="button"
+// (se a página tiver <form>, o default é submit e pode recarregar/impedir o JS)
 
 (() => {
   "use strict";
@@ -20,7 +23,11 @@
     CFG.APPS_SCRIPT_URL ||
     "https://script.google.com/macros/s/AKfycbxRvwp0aOtgENIj6Hm0H_zb0IsDBzW-QM6BB7_eNKDzp5tSFVMgucItzidnKofVfKHw/exec";
 
-  const API_SECRET = CFG.API_SECRET || "VMA-2026-VALE-SEGREDO-9137";
+  // ✅ Compatível com seu vma-config.js (SECRET)
+  const API_SECRET =
+    CFG.SECRET ||
+    CFG.API_SECRET ||
+    "VMA-2026-VALE-SEGREDO-9137";
 
   const CRITERIA = [
     { key: "afinacao", label: "Afinação", desc: "Precisão das notas, estabilidade e controle." },
@@ -148,7 +155,7 @@
     return "";
   }
 
-  // Foto estável
+  // Foto está lembrar e estável
   function drivePhotoThumbUrl(fileId, size = 500) {
     if (!fileId) return "";
     return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w${size}`;
@@ -300,7 +307,7 @@
           </div>
 
           <div class="cand-actions">
-            <button class="btn-primary" data-action="submit">Finalizar avaliação</button>
+            <button type="button" class="btn-primary" data-action="submit">Finalizar avaliação</button>
             <div class="lock-hint" data-lockhint></div>
           </div>
         </section>
@@ -330,7 +337,9 @@
 
       const btn = card.querySelector('button[data-action="submit"]');
       if (btn) {
-        btn.addEventListener("click", async () => {
+        btn.addEventListener("click", async (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
           await submitRating(card);
         });
       }
@@ -468,7 +477,8 @@
     }
 
     if (el.btnSaveJuror) {
-      el.btnSaveJuror.addEventListener("click", () => {
+      el.btnSaveJuror.addEventListener("click", (ev) => {
+        ev.preventDefault();
         const id = getJurorId();
         if (!id) {
           setStatus("Digite seu ID de jurado (ex.: J1).", "warn");
@@ -481,7 +491,10 @@
     }
 
     if (el.btnRefresh) {
-      el.btnRefresh.addEventListener("click", () => loadCandidates());
+      el.btnRefresh.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        loadCandidates();
+      });
     }
 
     loadCandidates();
