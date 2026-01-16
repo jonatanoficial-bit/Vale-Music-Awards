@@ -1,197 +1,180 @@
-// assets/js/ranking.js
-// Vale Music Awards - Ranking (Apps Script API)
-// - Carrega ranking via ?action=ranking
-// - Renderiza foto com thumbnail do Drive (hotlink estável)
-// - Evita duplicar cards ao atualizar
+/* assets/js/ranking.js
+ * Ranking — consome Apps Script (?action=ranking)
+ * Robusto para chaves diferentes de foto e com fallback caso a imagem falhe.
+ */
 
-(() => {
+(function () {
   "use strict";
 
-  const CFG = (typeof window !== "undefined" && window.VMA_CONFIG) ? window.VMA_CONFIG : {};
+  const $ = (sel) => document.querySelector(sel);
 
-  const APPS_SCRIPT_URL =
-    CFG.APPS_SCRIPT_URL ||
-    "https://script.google.com/macros/s/AKfycbxRvwp0aOtgENIj6Hm0H_zb0IsDBzW-QM6BB7_eNKDzp5tSFVMgucItzidnKofVfKHw/exec";
-
-  const el = {
-    status: null,
-    list: null,
-    btn: null
+  const els = {
+    list: $("#list"),
+    status: $("#status"),
+    btnRefresh: $("#btnRefresh"),
+    lastUpdate: $("#lastUpdate"),
   };
 
-  function q(sel) { return document.querySelector(sel); }
-
-  function bindDom() {
-    el.status = q("#rankingStatus") || q("#statusBox") || q("[data-ranking-status]");
-    el.list = q("#rankingList") || q("#ranking") || q("[data-ranking]");
-    el.btn = q("#refreshRanking") || q("[data-refresh-ranking]");
+  function getConfig() {
+    const cfg = (window.VMA_CONFIG || {});
+    const url = String(cfg.APPS_SCRIPT_URL || "").trim();
+    if (!url) throw new Error("Config não carregou: verifique assets/js/vma-config.js no HTML.");
+    return { APPS_SCRIPT_URL: url.replace(/\/$/, "") };
   }
 
-  function setStatus(msg, type = "info") {
-    const prefix =
-      type === "ok" ? "✅ " :
-      type === "warn" ? "⚠️ " :
-      type === "err" ? "❌ " : "ℹ️ ";
-
-    if (el.status) {
-      el.status.textContent = prefix + msg;
-      el.status.dataset.type = type;
-    } else {
-      console[type === "err" ? "error" : "log"](prefix + msg);
+  function nowText() {
+    try {
+      return new Date().toLocaleString("pt-BR");
+    } catch {
+      return String(new Date());
     }
   }
 
-  function buildUrl(params) {
-    const u = new URL(APPS_SCRIPT_URL);
-    Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, String(v)));
-    u.searchParams.set("_ts", String(Date.now()));
-    return u.toString();
+  function setStatus(html, kind) {
+    // kind: "ok" | "bad" | ""
+    const clsOk = "statusOk";
+    const clsBad = "statusBad";
+    els.status.classList.remove(clsOk, clsBad);
+    if (kind === "ok") els.status.classList.add(clsOk);
+    if (kind === "bad") els.status.classList.add(clsBad);
+
+    els.status.firstElementChild
+      ? (els.status.firstElementChild.innerHTML = html)
+      : (els.status.innerHTML = `<span>${html}</span><span class="mutedSmall" id="lastUpdate"></span>`);
+
+    if (els.lastUpdate) els.lastUpdate.textContent = `Atualizado: ${nowText()}`;
   }
 
-  async function fetchJson(url) {
-    const res = await fetch(url, { method: "GET", cache: "no-store" });
-    if (!res.ok) {
-      const txt = await res.text().catch(() => "");
-      throw new Error(`HTTP ${res.status} ${res.statusText} - ${txt.slice(0, 180)}`);
-    }
-    return res.json();
+  function esc(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
-  function safeText(v) {
-    return String(v ?? "").replace(/[<>&"]/g, (c) => ({
-      "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;"
-    }[c]));
+  function initials(name) {
+    const n = String(name || "").trim();
+    if (!n) return "VA";
+    const parts = n.split(/\s+/).filter(Boolean);
+    const a = (parts[0] || "").slice(0, 1);
+    const b = (parts.length > 1 ? parts[parts.length - 1] : parts[0]).slice(0, 1);
+    return (a + b).toUpperCase();
   }
 
-  function extractDriveFileId(text) {
-    const s = String(text || "").trim();
-    if (!s) return "";
+  function pickPhotoUrl(item) {
+    // Aceita várias chaves possíveis
+    const candidates = [
+      item.photoUrl,
+      item.photoPublicUrl,
+      item.photo_public_url,
+      item.photo,
+      item.foto,
+      item.fotoUrl,
+      item.fotoPublicUrl,
+    ].map((v) => String(v || "").trim()).filter(Boolean);
 
-    let m = s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
-    if (m && m[1]) return m[1];
+    if (!candidates.length) return "";
 
-    m = s.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/);
-    if (m && m[1]) return m[1];
-
-    m = s.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
-    if (m && m[1]) return m[1];
-
-    return "";
+    // Preferir links do Drive "uc?"
+    const driveUc = candidates.find((u) => u.includes("drive.google.com/uc?"));
+    return driveUc || candidates[0];
   }
 
-  function drivePhotoThumbUrl(fileId, size = 500) {
-    if (!fileId) return "";
-    return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w${size}`;
+  function normalizeScore(n) {
+    const v = Number(n);
+    if (!Number.isFinite(v)) return 0;
+    // Ranking no seu Apps Script já retorna 0..100, mas garantimos
+    return Math.max(0, Math.min(100, v));
   }
 
-  function renderRanking(items) {
-    if (!el.list) {
-      setStatus("Container do ranking não encontrado no HTML (#rankingList).", "err");
+  function renderRanking(list) {
+    if (!Array.isArray(list) || !list.length) {
+      els.list.innerHTML = "";
+      setStatus("Nenhum candidato no ranking ainda.", "");
       return;
     }
 
-    el.list.innerHTML = "";
+    const html = list.map((c) => {
+      const pos = Number(c.position || 0) || 0;
+      const id = esc(c.candidateId || "");
+      const name = esc(c.artisticName || c.name || "");
+      const score = normalizeScore(c.avgScore100);
+      const scoreText = score.toFixed(2);
+      const count = Number(c.scoresCount || 0) || 0;
 
-    if (!Array.isArray(items) || items.length === 0) {
-      setStatus("Ranking vazio (ainda sem avaliações).", "warn");
-      return;
-    }
-
-    const html = items.map((r) => {
-      const pos = Number(r.position || 0);
-      const id = safeText(r.candidateId || "");
-      const name = safeText(r.artisticName || "Candidato");
-      const avg = Number(r.avgScore100 || 0);
-      const count = Number(r.scoresCount || 0);
-
-      const photoId = extractDriveFileId(r.photoUrl);
-      const photoSrc = photoId ? drivePhotoThumbUrl(photoId, 600) : "";
+      const photo = pickPhotoUrl(c);
+      const ini = initials(c.artisticName || c.name || "");
 
       return `
-        <div class="rank-row" style="
-          display:flex; align-items:center; gap:12px;
-          padding:14px; border-radius:18px;
-          border:1px solid rgba(255,255,255,0.10);
-          background: rgba(0,0,0,0.32);
-          box-shadow: 0 14px 34px rgba(0,0,0,0.35);
-          margin-bottom:12px;
-        ">
-          <div class="rank-pos" style="
-            width:42px; height:42px; border-radius:14px;
-            display:flex; align-items:center; justify-content:center;
-            font-weight:800;
-            background: rgba(212,175,55,0.12);
-            border: 1px solid rgba(212,175,55,0.25);
-            color: rgba(212,175,55,0.95);
-            flex: 0 0 auto;
-          ">${pos}</div>
+        <article class="card">
+          <div class="rankBadge">${pos || ""}</div>
 
-          <div class="rank-photo" style="
-            width:54px; height:54px; border-radius:16px; overflow:hidden;
-            background: rgba(255,255,255,0.06);
-            border:1px solid rgba(255,255,255,0.10);
-            flex:0 0 auto;
-          ">
-            ${
-              photoSrc
-                ? `<img src="${safeText(photoSrc)}" alt="Foto ${name}" loading="lazy"
-                     style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;"
-                     onerror="this.style.opacity='0.25'; this.alt='Foto indisponível';">`
-                : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:0.7;">Foto</div>`
+          <div class="avatar" aria-label="Foto do candidato">
+            ${photo
+              ? `<img
+                    src="${esc(photo)}"
+                    alt="Foto de ${name}"
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                    onerror="this.remove(); this.parentNode.innerHTML='<div class=\\'avatarFallback\\'>${esc(ini)}</div>';"
+                 />`
+              : `<div class="avatarFallback">${esc(ini)}</div>`
             }
           </div>
 
-          <div class="rank-meta" style="flex:1; min-width:0;">
-            <div style="font-weight:800; font-size:16px; line-height:1.2;">${name}</div>
-            <div style="opacity:0.85; font-size:12.5px; margin-top:6px;">
-              ID: ${id} • ${count} avaliação(ões)
+          <div class="info">
+            <p class="name">${name || "Candidato"}</p>
+            <div class="meta">
+              <span class="tag">ID: ${id}</span>
+              <span class="tag">${count} avaliação(ões)</span>
             </div>
           </div>
 
-          <div class="rank-score" style="
-            min-width:92px;
-            padding:10px 12px;
-            border-radius:16px;
-            text-align:right;
-            background: rgba(212,175,55,0.10);
-            border:1px solid rgba(212,175,55,0.22);
-            color: rgba(212,175,55,0.95);
-            font-weight:900;
-          ">
-            <div style="font-size:20px; line-height:1;">${avg.toFixed(2)}</div>
-            <div style="font-size:12px; opacity:0.9;">/100</div>
+          <div class="scoreBox" aria-label="Pontuação">
+            <p class="score">${scoreText}</p>
+            <p class="scoreSub">/100</p>
           </div>
-        </div>
+        </article>
       `;
     }).join("");
 
-    el.list.innerHTML = html;
-    setStatus(`Ranking carregado • ${items.length} candidato(s)`, "ok");
+    els.list.innerHTML = html;
+    setStatus(`✅ Ranking carregado • <strong>${list.length}</strong> candidato(s)`, "ok");
   }
 
-  async function loadRanking() {
+  async function fetchRanking() {
+    const { APPS_SCRIPT_URL } = getConfig();
+    const url = `${APPS_SCRIPT_URL}?action=ranking&t=${Date.now()}`;
+
+    setStatus("Carregando ranking...", "");
     try {
-      setStatus("Carregando ranking...", "info");
-      const url = buildUrl({ action: "ranking" });
-      const data = await fetchJson(url);
-      if (!data || data.ok !== true) throw new Error(data?.error || "Resposta inválida.");
-      renderRanking(data.ranking || []);
+      const res = await fetch(url, { method: "GET" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      if (!data || data.ok !== true) {
+        throw new Error(data && data.error ? data.error : "Resposta inválida do Apps Script");
+      }
+
+      // Esperado: { ok:true, ranking:[...] }
+      const ranking = Array.isArray(data.ranking) ? data.ranking : [];
+      renderRanking(ranking);
     } catch (err) {
       console.error(err);
-      setStatus(`Falha ao carregar ranking: ${err.message}`, "err");
-      if (el.list) el.list.innerHTML = "";
+      els.list.innerHTML = "";
+      setStatus(`❌ Erro ao carregar ranking: <strong>${esc(err.message || err)}</strong>`, "bad");
     }
   }
 
-  function init() {
-    bindDom();
-    if (el.btn) el.btn.addEventListener("click", loadRanking);
-    loadRanking();
+  function bind() {
+    if (els.btnRefresh) {
+      els.btnRefresh.addEventListener("click", fetchRanking);
+    }
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  // init
+  bind();
+  fetchRanking();
 })();
