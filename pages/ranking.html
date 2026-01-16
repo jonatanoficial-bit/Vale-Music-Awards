@@ -1,441 +1,268 @@
 <!doctype html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Ranking — Vale Music Awards</title>
-  <meta name="theme-color" content="#0b0b0f" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ranking • Vale Music Awards</title>
+
+  <link rel="icon" href="../assets/img/favicon.png" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+
+  <!-- Config central (mantém como está) -->
+  <script src="../assets/js/vma-config.js"></script>
 
   <style>
-    :root{
-      --bg:#07070a;
-      --panel: rgba(255,255,255,.06);
-      --panel2: rgba(255,255,255,.08);
-      --stroke: rgba(255,255,255,.10);
-      --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.65);
-      --muted2: rgba(255,255,255,.45);
-      --gold1:#f7d27a;
-      --gold2:#caa24c;
-      --shadow: 0 30px 80px rgba(0,0,0,.65);
-      --radius: 22px;
-      --radius2: 18px;
-    }
-
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, Helvetica, "Apple Color Emoji","Segoe UI Emoji";
-      background:
-        radial-gradient(1200px 800px at 70% 10%, rgba(202,162,76,.18), transparent 60%),
-        radial-gradient(900px 600px at 25% 20%, rgba(247,210,122,.12), transparent 55%),
-        radial-gradient(900px 800px at 30% 90%, rgba(255,255,255,.06), transparent 60%),
-        linear-gradient(180deg, #050507, #09090d 50%, #07070a);
-      color:var(--text);
-      overflow-x:hidden;
-    }
-
-    .wrap{
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 22px 16px 40px;
-    }
-
-    .topbar{
-      position: sticky;
-      top:0;
-      z-index:10;
-      padding: 14px 0 12px;
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      background: linear-gradient(180deg, rgba(7,7,10,.72), rgba(7,7,10,.35));
-      border-bottom: 1px solid rgba(255,255,255,.06);
-    }
-
-    .topbarInner{
-      display:flex;
-      align-items:center;
-      gap:14px;
-      justify-content:space-between;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width: 0;
-    }
-    .brandLogo{
-      width:42px;height:42px;border-radius:14px;
-      background: radial-gradient(circle at 30% 20%, rgba(247,210,122,.25), rgba(255,255,255,.06) 55%, rgba(0,0,0,.25));
-      border:1px solid rgba(255,255,255,.10);
-      display:grid;place-items:center;
-      overflow:hidden;
-      box-shadow: 0 14px 30px rgba(0,0,0,.45);
-    }
-    .brandLogo img{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      padding:6px;
-      display:block;
-    }
-    .brandText{
-      min-width:0;
-      display:flex;
-      flex-direction:column;
-      line-height:1.1;
-    }
-    .brandText .t1{
-      font-weight:800;
-      letter-spacing:.2px;
-      font-size: 15.5px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .brandText .t2{
-      color:var(--muted);
-      font-size:12.5px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .nav{
-      display:flex; gap:10px; align-items:center;
-    }
-    .pill{
-      appearance:none;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.86);
-      padding: 10px 14px;
-      border-radius: 999px;
-      text-decoration:none;
-      font-weight:700;
-      font-size: 13.5px;
-      transition: .2s ease;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-    }
-    .pill:hover{ transform: translateY(-1px); background: rgba(255,255,255,.085); border-color: rgba(255,255,255,.16); }
-    .pill.primary{
-      border-color: rgba(247,210,122,.28);
-      background: linear-gradient(180deg, rgba(247,210,122,.20), rgba(202,162,76,.12));
-      color: rgba(255,255,255,.92);
-    }
-
-    .hero{
-      margin-top: 18px;
-      border-radius: var(--radius);
-      border: 1px solid rgba(255,255,255,.10);
-      background:
-        radial-gradient(900px 500px at 70% 0%, rgba(247,210,122,.16), transparent 60%),
-        radial-gradient(800px 500px at 20% 10%, rgba(202,162,76,.10), transparent 60%),
-        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      box-shadow: var(--shadow);
-      padding: 22px;
-      overflow:hidden;
-      position:relative;
-    }
-
-    .hero:before{
-      content:"";
-      position:absolute; inset:-2px;
-      background:
-        radial-gradient(500px 220px at 15% 20%, rgba(255,255,255,.08), transparent 60%),
-        radial-gradient(600px 240px at 75% 0%, rgba(247,210,122,.10), transparent 60%);
-      pointer-events:none;
-      filter: blur(0px);
-      opacity:.9;
-    }
-
-    .heroInner{
-      position:relative;
-      display:flex;
-      gap:16px;
-      align-items:flex-start;
-      justify-content:space-between;
-      flex-wrap:wrap;
-    }
-
-    .heroLeft{
-      min-width: 260px;
-      flex: 1 1 520px;
-    }
-    .hTitle{
-      font-size: clamp(28px, 3.2vw, 40px);
-      margin: 0 0 6px;
-      letter-spacing: .2px;
-      line-height: 1.05;
-    }
-    .hTitle span{
-      color: transparent;
-      background: linear-gradient(90deg, var(--gold1), var(--gold2));
-      -webkit-background-clip:text;
-      background-clip:text;
-    }
-    .hSub{
-      margin: 0;
-      color: var(--muted);
-      font-size: 14.5px;
-      line-height: 1.45;
-      max-width: 70ch;
-    }
-
-    .heroRight{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      flex: 0 0 auto;
-    }
-    .chip{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.05);
-      border-radius: 999px;
-      padding: 10px 12px;
-      display:flex;
-      gap:8px;
-      align-items:center;
-      color: rgba(255,255,255,.80);
-      font-size: 13px;
-      font-weight:700;
-    }
-    .dot{
-      width:8px; height:8px; border-radius:999px;
-      background: rgba(108, 255, 170, .9);
-      box-shadow: 0 0 0 6px rgba(108, 255, 170, .10);
-    }
-
-    .btn{
-      appearance:none;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.90);
-      padding: 11px 14px;
-      border-radius: 999px;
-      font-weight: 800;
-      font-size: 13.5px;
-      cursor:pointer;
-      transition:.2s ease;
-    }
-    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.085); border-color: rgba(255,255,255,.16); }
-
-    .statusLine{
-      margin-top: 14px;
+    /* Ajuste visual do avatar no ranking (premium + consistente) */
+    .rankAvatar {
+      width: 54px;
+      height: 54px;
       border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.05);
-      padding: 12px 14px;
-      color: rgba(255,255,255,.80);
-      font-weight: 700;
-      font-size: 13.5px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-    .statusLine strong{ color: rgba(255,255,255,.92); }
-    .statusBad{ color: rgba(255,120,120,.95); }
-    .statusOk{ color: rgba(120,255,180,.95); }
-
-    .list{
-      margin-top: 18px;
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    @media (max-width: 860px){
-      .list{ grid-template-columns: 1fr; }
-      .hero{ padding: 18px; }
-    }
-
-    .card{
-      border-radius: var(--radius2);
-      border:1px solid rgba(255,255,255,.10);
-      background:
-        radial-gradient(520px 260px at 70% 0%, rgba(247,210,122,.10), transparent 60%),
-        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      box-shadow: 0 20px 45px rgba(0,0,0,.35);
-      padding: 14px;
-      display:flex;
-      gap: 12px;
-      align-items:center;
-      overflow:hidden;
-      position:relative;
-    }
-
-    .rankBadge{
-      width: 40px; height: 40px;
-      border-radius: 14px;
-      border: 1px solid rgba(247,210,122,.30);
-      background: linear-gradient(180deg, rgba(247,210,122,.22), rgba(202,162,76,.10));
-      display:grid; place-items:center;
-      font-weight: 900;
-      color: rgba(255,255,255,.92);
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35);
       flex: 0 0 auto;
-      box-shadow: 0 14px 26px rgba(0,0,0,.35);
     }
 
-    .avatar{
-      width: 54px; height: 54px;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      overflow:hidden;
-      flex: 0 0 auto;
-      display:grid;
-      place-items:center;
-      position:relative;
-    }
-    .avatar img{
-      width:100%;
-      height:100%;
+    .rankAvatar img {
+      width: 100%;
+      height: 100%;
       object-fit: cover;
-      display:block;
-    }
-    .avatarFallback{
-      width:100%;
-      height:100%;
-      display:grid;
-      place-items:center;
-      font-weight: 900;
-      letter-spacing:.4px;
-      color: rgba(255,255,255,.85);
-      background:
-        radial-gradient(circle at 30% 20%, rgba(247,210,122,.22), rgba(255,255,255,.06) 55%, rgba(0,0,0,.20));
+      display: block;
+      filter: saturate(1.05) contrast(1.02);
     }
 
-    .info{
-      min-width:0;
-      flex: 1 1 auto;
-    }
-    .name{
-      font-weight: 900;
-      font-size: 16px;
-      line-height: 1.15;
-      margin: 0 0 6px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .meta{
-      display:flex; gap:8px; flex-wrap:wrap;
-      color: var(--muted);
+    .rankAvatar .fallback {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
       font-weight: 800;
-      font-size: 12px;
-    }
-    .tag{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      padding: 6px 10px;
-      border-radius: 999px;
-      color: rgba(255,255,255,.72);
+      letter-spacing: 0.5px;
+      color: rgba(255,255,255,0.92);
+      background: radial-gradient(circle at 30% 20%, rgba(212,175,55,0.35), rgba(0,0,0,0.25) 55%),
+                  linear-gradient(135deg, rgba(255,255,255,0.06), rgba(0,0,0,0.25));
     }
 
-    .scoreBox{
-      width: 92px;
-      border-radius: 18px;
-      border:1px solid rgba(247,210,122,.25);
-      background: linear-gradient(180deg, rgba(247,210,122,.18), rgba(202,162,76,.08));
-      padding: 10px 10px;
-      text-align:right;
-      flex: 0 0 auto;
-    }
-    .score{
-      font-size: 22px;
-      font-weight: 1000;
-      letter-spacing: .2px;
-      margin: 0;
-      color: rgba(247,210,122,.95);
-    }
-    .scoreSub{
-      margin: 0;
-      font-size: 12px;
-      font-weight: 800;
-      color: rgba(255,255,255,.70);
-    }
-
-    .mutedSmall{
-      color: var(--muted2);
-      font-weight: 700;
-      font-size: 12px;
-    }
-
-    .foot{
-      margin-top: 18px;
-      text-align:center;
-      color: rgba(255,255,255,.40);
-      font-size: 12px;
-      font-weight: 700;
+    /* Segurança: garante que o item não “quebre layout” */
+    .rankRow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
   </style>
 </head>
 
-<body>
-  <div class="topbar">
-    <div class="wrap">
-      <div class="topbarInner">
-        <div class="brand">
-          <div class="brandLogo" aria-label="Logo Vale Produção">
-            <!-- Ajuste aqui se seu caminho estiver diferente -->
-            <img src="../assets/img/vale-producao-logo.png" alt="Vale Produção" onerror="this.style.display='none'">
-          </div>
-          <div class="brandText">
-            <div class="t1">Vale Music Awards</div>
-            <div class="t2">Ranking Oficial • Atualização ao vivo</div>
-          </div>
-        </div>
-
-        <div class="nav">
-          <a class="pill" href="../index.html">Início</a>
-          <a class="pill" href="./inscricao.html">Inscrição</a>
-          <a class="pill primary" href="./jurados.html">Área de jurados</a>
-        </div>
+<body class="appBody">
+  <header class="topbar">
+    <div class="brand">
+      <img src="../assets/img/vale-producao-logo.png" alt="Vale Produção" class="brandLogo" />
+      <div class="brandText">
+        <div class="brandTitle">Vale Music Awards</div>
+        <div class="brandSub">Ranking Oficial • Atualização ao vivo</div>
       </div>
     </div>
-  </div>
 
-  <div class="wrap">
-    <section class="hero">
-      <div class="heroInner">
-        <div class="heroLeft">
-          <h1 class="hTitle">Ranking <span>ao vivo</span></h1>
-          <p class="hSub">
-            O ranking é calculado a partir da <strong>média das notas (0–100)</strong> registradas pelos jurados.
-            A atualização ocorre automaticamente após cada avaliação confirmada.
-          </p>
+    <nav class="navPills">
+      <a class="pill" href="../index.html">Início</a>
+      <a class="pill" href="./inscricao.html">Inscrição</a>
+      <a class="pill pillGold" href="./jurados.html">Área de jurados</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="heroCard">
+      <h1 class="heroTitle">Ranking ao vivo</h1>
+      <p class="heroDesc">
+        O ranking é calculado a partir da <strong>média das notas (0–100)</strong> registradas pelos jurados.
+        A atualização ocorre automaticamente após cada avaliação confirmada.
+      </p>
+
+      <div class="heroActions">
+        <div class="chip chipOnline">
+          <span class="dot"></span>
+          <span>Online</span>
         </div>
 
-        <div class="heroRight">
-          <div class="chip" title="Status">
-            <span class="dot" aria-hidden="true"></span>
-            Online
-          </div>
-          <button id="btnRefresh" class="btn" type="button">Atualizar</button>
-        </div>
+        <button id="btnRefresh" class="btn btnPrimary">Atualizar</button>
       </div>
 
-      <div id="status" class="statusLine">
-        <span>Carregando ranking...</span>
-        <span class="mutedSmall" id="lastUpdate"></span>
+      <div id="statusBox" class="statusBox">
+        <span id="statusText">Pronto para carregar ranking...</span>
+        <div class="statusMeta" id="updatedText"></div>
       </div>
     </section>
 
-    <section id="list" class="list" aria-label="Lista do ranking"></section>
+    <section class="listWrap">
+      <div id="rankingList" class="rankingList"></div>
+    </section>
 
-    <div class="foot">
+    <footer class="footer">
       Criado por Jonatan Vale em parceria com Vale Produção.
-    </div>
-  </div>
+    </footer>
+  </main>
 
-  <!-- Config (precisa existir): window.VMA_CONFIG.APPS_SCRIPT_URL -->
-  <script src="../assets/js/vma-config.js"></script>
-  <script src="../assets/js/ranking.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      const listEl = document.getElementById("rankingList");
+      const btn = document.getElementById("btnRefresh");
+      const statusText = document.getElementById("statusText");
+      const updatedText = document.getElementById("updatedText");
+
+      function nowBR() {
+        try { return new Date().toLocaleString("pt-BR"); } catch { return String(new Date()); }
+      }
+
+      function setStatus(msg) {
+        statusText.textContent = msg;
+        updatedText.textContent = "Atualizado: " + nowBR();
+      }
+
+      function esc(s) {
+        return String(s ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function initials(name) {
+        const n = String(name || "").trim();
+        if (!n) return "VA";
+        const parts = n.split(/\s+/).filter(Boolean);
+        const a = (parts[0] || "").slice(0, 1);
+        const b = (parts.length > 1 ? parts[parts.length - 1] : parts[0]).slice(0, 1);
+        return (a + b).toUpperCase();
+      }
+
+      // ✅ MESMA LÓGICA DO JURADOS (gerar imagem a partir do ID do Drive)
+      function extractDriveId(url) {
+        const u = String(url || "");
+        // uc?...id=FILEID
+        let m = u.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
+        if (m && m[1]) return m[1];
+        // /file/d/FILEID
+        m = u.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/);
+        if (m && m[1]) return m[1];
+        return "";
+      }
+
+      // Gera URL que renderiza em <img> (thumbnail)
+      function driveThumbFromAny(url) {
+        const id = extractDriveId(url);
+        if (!id) return "";
+        return "https://drive.google.com/thumbnail?id=" + id + "&sz=w300";
+      }
+
+      function normalizeScore(n) {
+        const v = Number(n);
+        if (!Number.isFinite(v)) return 0;
+        return Math.max(0, Math.min(100, v));
+      }
+
+      function renderRanking(items) {
+        if (!Array.isArray(items) || items.length === 0) {
+          listEl.innerHTML = "";
+          setStatus("Nenhum candidato no ranking ainda.");
+          return;
+        }
+
+        const html = items.map(function (c) {
+          const pos = Number(c.position || 0) || 0;
+          const cid = esc(c.candidateId || "");
+          const nameRaw = c.artisticName || c.name || "Candidato";
+          const name = esc(nameRaw);
+          const score = normalizeScore(c.avgScore100);
+          const scoreText = score.toFixed(2);
+          const count = Number(c.scoresCount || 0) || 0;
+
+          // prioridade: se vier "photoThumbUrl" do backend (futuro), usa.
+          // senão converte o que já existe (photoUrl/photoPublicUrl) pra thumbnail
+          const srcRaw =
+            (c.photoThumbUrl || "") ||
+            (c.photoViewUrl || "") ||
+            (c.photoUrl || "") ||
+            (c.photoPublicUrl || "");
+
+          const photo = driveThumbFromAny(srcRaw);
+
+          const ini = esc(initials(nameRaw));
+
+          return `
+            <div class="rankCard">
+              <div class="rankLeft">
+                <div class="rankPos">${pos}</div>
+
+                <div class="rankRow">
+                  <div class="rankAvatar">
+                    ${
+                      photo
+                        ? `<img src="${esc(photo)}"
+                               alt="Foto de ${name}"
+                               loading="lazy"
+                               referrerpolicy="no-referrer"
+                               onerror="this.parentNode.innerHTML='<div class=\\'fallback\\'>${ini}</div>';">`
+                        : `<div class="fallback">${ini}</div>`
+                    }
+                  </div>
+
+                  <div class="rankInfo">
+                    <div class="rankName">${name}</div>
+                    <div class="rankMeta">
+                      <span class="tag">ID: ${cid}</span>
+                      <span class="tag">${count} avaliação(ões)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rankScore">
+                <div class="rankScoreNum">${scoreText}</div>
+                <div class="rankScoreSub">/100</div>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        listEl.innerHTML = html;
+        setStatus("✅ Ranking carregado • " + items.length + " candidato(s)");
+      }
+
+      async function loadRanking() {
+        const cfg = window.VMA_CONFIG || {};
+        const base = String(cfg.APPS_SCRIPT_URL || "").trim().replace(/\/$/, "");
+        if (!base) {
+          setStatus("Erro: Config não carregou (vma-config.js).");
+          return;
+        }
+
+        setStatus("Carregando ranking...");
+        try {
+          const url = base + "?action=ranking&t=" + Date.now();
+          const res = await fetch(url);
+          if (!res.ok) throw new Error("HTTP " + res.status);
+
+          const data = await res.json();
+          if (!data || data.ok !== true) {
+            throw new Error((data && data.error) ? data.error : "Resposta inválida do Apps Script");
+          }
+
+          renderRanking(Array.isArray(data.ranking) ? data.ranking : []);
+        } catch (e) {
+          console.error(e);
+          listEl.innerHTML = "";
+          setStatus("❌ Erro ao carregar ranking: " + (e && e.message ? e.message : e));
+        }
+      }
+
+      btn.addEventListener("click", loadRanking);
+      loadRanking();
+    })();
+  </script>
 </body>
 </html>
