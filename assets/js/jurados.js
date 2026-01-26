@@ -366,7 +366,8 @@
     const candidateId = cardEl.dataset.candidate;
 
     if (!jurorId) {
-      alert("Defina seu ID de jurado e clique em Salvar.");
+      // Instrui o jurado a definir o seu RA antes de avaliar
+      alert("Defina seu RA de jurado e clique em Salvar.");
       if (el.jurorInput) el.jurorInput.focus();
       return;
     }
@@ -390,7 +391,7 @@
 
     const confirmMsg =
       `Confirmar envio?\n\n` +
-      `Jurado: ${jurorId}\n` +
+      `RA do jurado: ${jurorId}\n` +
       `Candidato: ${candidateId}\n` +
       `Total: ${total}/100\n\n` +
       `Após enviar, não será possível alterar.`;
@@ -449,11 +450,13 @@
       el.btnSaveJuror.addEventListener("click", () => {
         const id = getJurorId();
         if (!id) {
-          setStatus("Digite seu ID de jurado (ex.: J1).", "warn");
+          // Mensagem caso o jurado não tenha informado seu RA
+          setStatus("Digite seu RA de jurado (ex.: 12345).", "warn");
           return;
         }
         setJurorId(id);
-        setStatus(`Jurado definido: ${id}`, "ok");
+        // Exibe confirmação com o RA do jurado salvo
+        setStatus(`RA definido: ${id}`, "ok");
         loadCandidates();
       });
     }
